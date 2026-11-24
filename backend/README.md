@@ -61,7 +61,7 @@ Errores: `{ "error": "<código>", "message": "<texto>" }` con el código HTTP co
 | `GET /v1/characters/:accountId` | | perfil |
 | `POST /v1/economy/transactions` | `{ characterId, amount, reason, idempotencyKey, serverId? }` | `{ entryId, amount, balance, replayed }` |
 
-`reason`: `sell_loot`, `arrest_reward`, `shop_purchase`, `admin_adjustment`. `amount` positivo cobra, negativo paga.
+`reason`: `sell_loot`, `arrest_reward`, `police_salary` (salario del turno policial), `shop_purchase`, `admin_adjustment`. `amount` positivo cobra, negativo paga.
 
 Errores de economía: `insufficient_funds` (409), `idempotency_conflict` (409, misma clave con otros datos).
 

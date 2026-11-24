@@ -26,7 +26,7 @@ El rol es un **estado del personaje dentro del barrio**, no una clase permanente
 
 - **Puede:** recorrer el barrio sin riesgo, planear rutas, comprar herramientas, usar el banco.
 - **No puede:** usar armas, robar.
-- **Al morir:** no pierde nada.
+- **Al morir:** no pierde nada propio. Si lleva botín robado (por ejemplo, yendo al reducidor después de escapar), el botín sí se pierde.
 - **Ningún jugador puede hacerle daño sin consecuencia:** a un ladrón le sube el nivel de búsqueda, y un policía comete una falta grave.
 - Para qué existe: aprender el mapa y la economía sin castigo. El riesgo es una decisión del jugador.
 
@@ -111,9 +111,9 @@ Son dos medidores distintos con propósitos opuestos:
 | | Notoriedad | Nivel de búsqueda |
 | --- | --- | --- |
 | Qué mide | La racha de robos en una misma entrada al barrio | La violencia contra vecinos |
-| Cómo sube | Encadenando robos sin salir | Herir o matar vecinos: +1 por cada uno |
+| Cómo sube | +1 por cada robo completado sin salir del barrio | +1 por cada vecino que mata; herir vecinos impide que baje |
 | Cómo baja | Se pierde al salir del barrio, morir o ser arrestado | 1 nivel por minuto sin delitos violentos |
-| Efecto | El reducidor paga más (hasta +50 %) | Nivel 3: **toda la ciudad ve tu ubicación** |
+| Efecto | Cada robo vale +10 % por nivel (hasta +50 %): el valor queda en el botín y se cobra después en el reducidor | Nivel 3: **toda la ciudad ve tu ubicación** |
 | Qué premia | El robo profesional | El robo sin víctimas |
 
 **Ladrones solos o de a dos** arrancan con notoriedad más alta que los grupos, para que puedan competir.
@@ -155,14 +155,14 @@ Son dos medidores distintos con propósitos opuestos:
 
 | Mecánica | Etapa |
 | --- | --- |
-| Roles vecino, ladrón y policía, con pasamontañas y salidas del barrio | **MVP**: reemplaza la regla actual de "buscado por alarma" |
-| La policía solo puede dañar ladrones; los vecinos son intocables sin consecuencia | **MVP** |
-| Pérdida total al morir siendo ladrón; morir al desconectarse siendo ladrón | **MVP** |
-| Reducidor Afuera, notoriedad básica | **MVP** |
-| Rendirse (Q), esposar (E 2,5 s), arresto | **MVP** |
-| Pago de la policía: arresto mucho mayor que abatir, salario al terminar el turno | **MVP** |
+| Roles vecino, ladrón y policía, con pasamontañas y salidas del barrio | **MVP**, código escrito (etapa 6b) |
+| La policía solo puede dañar ladrones; zonas seguras; protección al reaparecer | **MVP**, código escrito |
+| Pérdida total al morir siendo ladrón; desconectarse siendo ladrón pierde el botín | **MVP**, código escrito |
+| Reducidor Afuera, notoriedad | **MVP**, código escrito |
+| Rendirse (Q), orden de rendición (Q policía), esposar (E 2,5 s), arresto | **MVP**, código escrito |
+| Pago de la policía: arresto mucho mayor que abatir, salario al terminar el turno | **MVP**, código escrito |
+| Nivel de búsqueda por violencia, con nivel 3 visible para todos | **MVP**, código escrito |
 | Policías bot de relleno | **MVP completo** |
-| Nivel de búsqueda por violencia, con nivel 3 visible en el mapa | **MVP completo** |
 | Ganzúa vs. romper ventana | **MVP completo** |
 | Liberar a un esposado; coima | Después del MVP |
 | Faltas e infracciones (con vehículos) | Después del MVP |

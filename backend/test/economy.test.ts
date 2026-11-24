@@ -74,6 +74,12 @@ describe("economía", () => {
     expect(await walletAndLedger()).toEqual({ cash: 100, ledgerTotal: 100, entries: 1 });
   });
 
+  it("acepta el salario del turno policial", async () => {
+    const response = await post({ characterId, amount: 4500, reason: "police_salary", idempotencyKey: "turno-0001" });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().balance).toBe(4500);
+  });
+
   it("rechaza monto cero, motivo desconocido y personaje inexistente", async () => {
     expect((await post({ characterId, amount: 0, reason: "sell_loot", idempotencyKey: "cero-0001" })).statusCode).toBe(400);
     expect((await post({ characterId, amount: 10, reason: "regalo", idempotencyKey: "motivo-001" })).statusCode).toBe(400);

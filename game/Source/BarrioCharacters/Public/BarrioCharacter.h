@@ -19,10 +19,11 @@ struct FInputActionValue;
  * Personaje jugable en tercera persona.
  *
  * Controles por defecto: WASD moverse, mouse mirar, Espacio saltar, Shift correr, C agacharse,
- * E interactuar, clic izquierdo disparar, R recargar.
+ * E interactuar, clic izquierdo disparar, R recargar, G ponerse el pasamontañas,
+ * Q rendirse (ladrón) u ordenar rendición (policía).
  *
- * El personaje también es interactuable: un policía que mira de cerca a un sospechoso buscado
- * ve "Arrestar". El arresto lo resuelve el GameMode en el servidor.
+ * El personaje también es interactuable: un policía que mira de cerca a un ladrón rendido o
+ * reducido (25 % de vida o menos) ve "Esposar". La captura la resuelve el GameMode en el servidor.
  *
  * Si no se asignan assets de input en el Blueprint, los controles se crean en tiempo de ejecución.
  */
@@ -99,6 +100,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Input") TObjectPtr<UInputAction> InteractAction;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Input") TObjectPtr<UInputAction> FireAction;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Input") TObjectPtr<UInputAction> ReloadAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Input") TObjectPtr<UInputAction> MaskAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Input") TObjectPtr<UInputAction> SurrenderAction;
+
+	/** Vida (fracción de la máxima) por debajo de la cual un ladrón se puede esposar sin rendirse. */
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Combat", meta = (ClampMin = "0", ClampMax = "1"))
+	float SubduedHealthFraction = 0.25f;
 
 	virtual void BeginPlay() override;
 
@@ -113,6 +120,14 @@ private:
 	void RequestInteract();
 	void RequestFire();
 	void RequestReload();
+	void RequestMask();
+	void PressSurrenderKey();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRequestMask();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerPressSurrenderKey();
 
 	void HandleDeath();
 

@@ -2,6 +2,7 @@
 
 #include "BarrioHealthComponent.h"
 #include "BarrioLog.h"
+#include "BarrioPlayerState.h"
 #include "CollisionQueryParams.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
@@ -53,11 +54,19 @@ bool UBarrioWeaponComponent::IsOwnerDead() const
 	return Health && Health->IsDead();
 }
 
+bool UBarrioWeaponComponent::CanOwnerUseWeapon() const
+{
+	// Los vecinos no usan armas y un ladrón rendido tampoco (documento de diseño, secciones 3 y 5).
+	const APawn* Pawn = Cast<APawn>(GetOwner());
+	const ABarrioPlayerState* State = Pawn ? Pawn->GetPlayerState<ABarrioPlayerState>() : nullptr;
+	return State && !State->IsCivilian() && !State->IsSurrendered() && !State->IsJailed() && !IsOwnerDead();
+}
+
 void UBarrioWeaponComponent::RequestFire()
 {
 	const APawn* Pawn = Cast<APawn>(GetOwner());
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
-	if (!Controller || bReloading || IsOwnerDead())
+	if (!Controller || bReloading || !CanOwnerUseWeapon())
 	{
 		return;
 	}
@@ -91,7 +100,7 @@ void UBarrioWeaponComponent::ServerFire_Implementation(FVector_NetQuantize ViewS
 {
 	APawn* Pawn = Cast<APawn>(GetOwner());
 	UWorld* World = GetWorld();
-	if (!Pawn || !World || bReloading || Ammo <= 0 || IsOwnerDead())
+	if (!Pawn || !World || bReloading || Ammo <= 0 || !CanOwnerUseWeapon())
 	{
 		return;
 	}

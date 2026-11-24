@@ -50,7 +50,7 @@ const serverIdParams = z.object({ id: z.string().uuid() });
 const transactionBody = z.object({
   characterId: z.number().int().positive(),
   amount: z.number().int().refine((value) => value !== 0, "El monto no puede ser cero").refine((value) => Math.abs(value) <= 1_000_000, "Monto fuera de rango"),
-  reason: z.enum(["sell_loot", "arrest_reward", "shop_purchase", "admin_adjustment"]),
+  reason: z.enum(["sell_loot", "arrest_reward", "police_salary", "shop_purchase", "admin_adjustment"]),
   idempotencyKey: z.string().min(8).max(128),
   serverId: z.string().uuid().optional(),
 });

@@ -132,8 +132,9 @@ void AGreyboxNeighborhood::Rebuild(bool bAddInstances, TArray<FTransform>& OutHo
 	const float TotalX = BlocksX * BlockSize + (BlocksX + 1) * StreetWidth;
 	const float TotalY = BlocksY * BlockSize + (BlocksY + 1) * StreetWidth;
 
-	// Calzada: una losa que cubre todo, con la cara superior en Z = 0.
-	Box(GroundInstances, FVector(TotalX * 0.5f, TotalY * 0.5f, -GroundThickness * 0.5f), FVector(TotalX, TotalY, GroundThickness));
+	// Calzada: una losa que cubre el barrio y la franja de "Afuera" a su alrededor, con la cara superior en Z = 0.
+	Box(GroundInstances, FVector(TotalX * 0.5f, TotalY * 0.5f, -GroundThickness * 0.5f),
+		FVector(TotalX + 2.f * OutsideMargin, TotalY + 2.f * OutsideMargin, GroundThickness));
 
 	const float BuildableLength = BlockSize - 2.f * SidewalkWidth;
 	const float LotWidth = BuildableLength / LotsPerSide;

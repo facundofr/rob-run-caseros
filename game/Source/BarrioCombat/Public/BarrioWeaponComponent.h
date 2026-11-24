@@ -55,6 +55,7 @@ private:
 
 	void FinishReload();
 	bool IsOwnerDead() const;
+	bool CanOwnerUseWeapon() const;
 
 	UPROPERTY(Replicated)
 	int32 Ammo = 0;

@@ -8,16 +8,18 @@
 class ABarrioPlayerState;
 
 /**
- * Reglas de la partida del MVP 0. Existe solo en el servidor.
+ * Reglas de la partida. Existe solo en el servidor. Implementa docs/GAME_DESIGN_DOCUMENT.md.
  *
  * Escucha los eventos de UBarrioGameEvents y decide:
- * - Roles: cualquiera puede unirse a la policía en la comisaría si no está buscado, no lleva botín
- *   y hay cupo (1 policía cada 3 jugadores, hasta 4).
- * - Nivel de buscado: sube con alarmas, disparos y muertes de inocentes o policías; baja 1 nivel
- *   cada 60 s sin delitos.
- * - Arresto o muerte a manos de la policía estando buscado: cárcel (60 s + 15 s por nivel),
- *   pérdida del botín y recompensa para el policía.
- * - Reaparición a los 5 s después de morir; policías y civiles en puntos distintos.
+ * - Roles: vecino por defecto; ladrón al ponerse el pasamontañas (2 s, fuera de zona segura) hasta
+ *   cruzar una salida del barrio; policía en la comisaría si es vecino, sin botín y hay cupo
+ *   (1 cada 3 jugadores, hasta 4).
+ * - Captura: el ladrón se rinde con Q; el policía esposa (2,5 s) a un ladrón rendido o reducido;
+ *   arresto = cárcel (60 s + 15 s por nivel de búsqueda) y botín confiscado.
+ * - Policía: arresto $1.500 + 10 % del botín (+20 % con orden de rendición reciente), abatir $300,
+ *   matar a un rendido $0. Se cobra al terminar el turno.
+ * - Nivel de búsqueda: +1 por cada vecino que mata un ladrón; baja 1 por minuto sin delitos.
+ * - Al morir: el botín se pierde; el ladrón vuelve a ser vecino; el policía reaparece con protección.
  *
  * Para usar el personaje con malla y animaciones, crear un Blueprint hijo (BP_BarrioGameMode)
  * y asignarle como Default Pawn Class el Blueprint del personaje (ver README).
@@ -47,7 +49,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Rules") float JailTimePerWantedLevel = 15.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Rules") float WantedDecayInterval = 60.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Rules") float AlarmAlertRadius = 15000.f; // 150 m
-	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Rules") int32 ArrestRewardPerWantedLevel = 100;
+
+	// Roles y captura (documento de diseño, secciones 3, 5 y 7). Valores propios, se ajustan en la alpha.
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Capture") float MaskDuration = 2.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Capture") float CuffDuration = 2.5f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Capture") float CuffMaxDistance = 300.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Capture") float SurrenderOrderRadius = 2500.f; // 25 m
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") int32 ArrestBaseReward = 1500;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") float ArrestLootShare = 0.10f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") int32 KillCriminalReward = 300;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") float SurrenderOrderBonus = 0.20f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") float SurrenderOrderWindow = 20.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") float PoliceSpawnProtection = 10.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Police") int32 ShiftSalaryCap = 50000;
 
 	/** Tag del Player Start donde aparecen los policías. Los demás Player Start son de civiles. */
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Roles") FName PoliceStartTag = TEXT("Police");
@@ -60,10 +74,20 @@ private:
 	void HandleAlarm(const FVector& Location, AController* Suspect);
 	void HandleDamage(AController* Victim, AController* DamageInstigator, float Damage);
 	void HandleKill(AController* Victim, AController* Killer);
-	void HandleArrest(AController* Police, AController* Suspect);
+	void HandleCuffRequested(AController* Police, AController* Suspect);
 	void HandleRoleRequest(AController* Player, EBarrioRole RequestedRole);
 	void HandleSellLoot(AController* Seller);
+	void HandleMaskRequested(AController* Player);
+	void HandleSurrenderToggled(AController* Player);
+	void HandleSurrenderOrder(AController* Police);
+	void HandleLeftNeighborhood(AController* Player);
 	void TickRules();
+
+	void FinishMask(TWeakObjectPtr<AController> Player);
+	void FinishCuffing(TWeakObjectPtr<AController> Police, TWeakObjectPtr<AController> Suspect);
+	void Arrest(AController* Police, AController* Suspect);
+	void PayShift(ABarrioPlayerState* Police, const FString& Message);
+	TSet<TWeakObjectPtr<AController>> SuspectsBeingCuffed;
 
 	/** Suma dinero: con backend, lo guarda en la cuenta y usa el saldo confirmado; sin backend, solo en memoria. */
 	void GrantCash(ABarrioPlayerState* State, int32 Amount, const FString& Reason, const FString& SuccessMessage);
@@ -75,7 +99,6 @@ private:
 	TSet<TWeakObjectPtr<APlayerController>> VerifiedPlayers;
 
 	void Jail(ABarrioPlayerState* Suspect);
-	void RewardPolice(ABarrioPlayerState* Police, int32 WantedLevel);
 	void RespawnNow(AController* Player);
 	void RespawnLater(TWeakObjectPtr<AController> Player);
 	void ShowMessage(AController* Player, const FString& Message) const;

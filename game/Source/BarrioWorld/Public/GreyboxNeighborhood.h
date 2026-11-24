@@ -45,6 +45,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Greybox|Layout", meta = (ClampMin = "100"))
 	float SidewalkWidth = 300.f;
 
+	/** Franja de terreno alrededor del barrio ("Afuera": reducidor, sin policía), en cm. */
+	UPROPERTY(EditAnywhere, Category = "Greybox|Layout", meta = (ClampMin = "0"))
+	float OutsideMargin = 4000.f;
+
 	/** Lotes por cada frente de manzana. */
 	UPROPERTY(EditAnywhere, Category = "Greybox|Houses", meta = (ClampMin = "1", ClampMax = "30"))
 	int32 LotsPerSide = 10;

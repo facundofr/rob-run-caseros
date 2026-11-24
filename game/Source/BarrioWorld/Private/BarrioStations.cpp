@@ -3,6 +3,7 @@
 #include "BarrioGameEvents.h"
 #include "BarrioLog.h"
 #include "BarrioPlayerState.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
@@ -77,9 +78,9 @@ bool AFenceStation::CanInteract_Implementation(const AActor* InstigatorActor) co
 FText AFenceStation::GetInteractionText_Implementation(const AActor* InstigatorActor) const
 {
 	const ABarrioPlayerState* State = GetState(InstigatorActor);
-	if (State && State->IsWanted())
+	if (State && State->IsCriminal())
 	{
-		return INVTEXT("Estás buscado: el reducidor no te compra");
+		return INVTEXT("Con el pasamontañas no te compra: salí del barrio primero");
 	}
 	const int32 Loot = State ? State->GetCarriedLoot() : 0;
 	return FText::Format(INVTEXT("Vender botín (${0})"), FText::AsNumber(Loot));
@@ -87,10 +88,11 @@ FText AFenceStation::GetInteractionText_Implementation(const AActor* InstigatorA
 
 void AFenceStation::Interact_Implementation(AActor* InstigatorActor)
 {
+	// El reducidor está Afuera: solo le compra a quien ya salió del barrio (vecino otra vez).
 	const APawn* Pawn = Cast<APawn>(InstigatorActor);
 	const ABarrioPlayerState* State = GetState(InstigatorActor);
 	UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
-	if (!HasAuthority() || !Pawn || !State || !Events || State->IsWanted() || State->GetCarriedLoot() <= 0)
+	if (!HasAuthority() || !Pawn || !State || !Events || !State->IsCivilian() || State->GetCarriedLoot() <= 0)
 	{
 		return;
 	}
@@ -110,14 +112,19 @@ APoliceStation::APoliceStation()
 
 bool APoliceStation::CanInteract_Implementation(const AActor* InstigatorActor) const
 {
+	// Un ladrón no puede entrar de servicio: primero tiene que salir del barrio.
 	const ABarrioPlayerState* State = GetState(InstigatorActor);
-	return State && !State->IsJailed();
+	return State && !State->IsJailed() && !State->IsCriminal();
 }
 
 FText APoliceStation::GetInteractionText_Implementation(const AActor* InstigatorActor) const
 {
 	const ABarrioPlayerState* State = GetState(InstigatorActor);
-	return (State && State->IsPolice()) ? INVTEXT("Dejar la policía") : INVTEXT("Unirse a la policía");
+	if (State && State->IsPolice())
+	{
+		return FText::Format(INVTEXT("Terminar el turno y cobrar (${0})"), FText::AsNumber(State->GetShiftEarnings()));
+	}
+	return INVTEXT("Entrar de servicio como policía");
 }
 
 void APoliceStation::Interact_Implementation(AActor* InstigatorActor)
@@ -130,6 +137,74 @@ void APoliceStation::Interact_Implementation(AActor* InstigatorActor)
 		const EBarrioRole Requested = State->IsPolice() ? EBarrioRole::Civilian : EBarrioRole::Police;
 		Events->OnRoleRequested.Broadcast(Pawn->GetController(), Requested);
 	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// Zonas (salida del barrio y zona segura)
+// ---------------------------------------------------------------------------------------------
+
+ABarrioZone::ABarrioZone()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = false;
+
+	Area = CreateDefaultSubobject<UBoxComponent>(TEXT("Area"));
+	RootComponent = Area;
+	Area->SetBoxExtent(FVector(500.f, 500.f, 300.f));
+	Area->SetCollisionProfileName(TEXT("Trigger"));
+	Area->SetGenerateOverlapEvents(true);
+	Area->bHiddenInGame = false; // visible en el mapa gris para ubicarla
+	Area->ShapeColor = FColor::Green;
+}
+
+AExitZone::AExitZone()
+{
+	Area->ShapeColor = FColor::Yellow;
+}
+
+void AExitZone::BeginPlay()
+{
+	Super::BeginPlay();
+	if (HasAuthority())
+	{
+		Area->OnComponentBeginOverlap.AddDynamic(this, &AExitZone::OnAreaBeginOverlap);
+	}
+}
+
+void AExitZone::OnAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	const APawn* Pawn = Cast<APawn>(OtherActor);
+	const ABarrioPlayerState* State = GetState(OtherActor);
+	UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
+	if (Pawn && State && Events && State->IsCriminal())
+	{
+		Events->OnLeftNeighborhood.Broadcast(Pawn->GetController());
+	}
+}
+
+ASafeZone::ASafeZone()
+{
+	Area->ShapeColor = FColor::Cyan;
+}
+
+void ASafeZone::BeginPlay()
+{
+	Super::BeginPlay();
+	RegisteredBounds = Area->Bounds.GetBox();
+	if (UBarrioGameEvents* Events = UBarrioGameEvents::Get(this))
+	{
+		Events->RegisterSafeZone(RegisteredBounds);
+	}
+}
+
+void ASafeZone::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UBarrioGameEvents* Events = UBarrioGameEvents::Get(this))
+	{
+		Events->UnregisterSafeZone(RegisteredBounds);
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 // ---------------------------------------------------------------------------------------------

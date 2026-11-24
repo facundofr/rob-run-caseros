@@ -86,13 +86,21 @@ FIntPoint ALootPoint::GetLootRange() const
 
 bool ALootPoint::CanInteract_Implementation(const AActor* InstigatorActor) const
 {
+	// Vecinos y ladrones ven la puerta; solo el ladrón (libre) puede robarla. El vecino recibe la pista.
 	const APawn* Pawn = Cast<APawn>(InstigatorActor);
 	const ABarrioPlayerState* State = Pawn ? Pawn->GetPlayerState<ABarrioPlayerState>() : nullptr;
-	return State && !State->IsPolice() && !State->IsJailed() && !bLooted && Robber == nullptr;
+	return State && !State->IsPolice() && !State->IsJailed() && !State->IsSurrendered() && !bLooted && Robber == nullptr;
 }
 
 FText ALootPoint::GetInteractionText_Implementation(const AActor* InstigatorActor) const
 {
+	const APawn* Pawn = Cast<APawn>(InstigatorActor);
+	const ABarrioPlayerState* State = Pawn ? Pawn->GetPlayerState<ABarrioPlayerState>() : nullptr;
+	if (State && State->IsCivilian())
+	{
+		return INVTEXT("Para robar, ponete el pasamontañas (G)");
+	}
+
 	const FText TierText = Tier == ELootTier::High ? INVTEXT("alto") : (Tier == ELootTier::Medium ? INVTEXT("medio") : INVTEXT("bajo"));
 	return FText::Format(INVTEXT("Robar casa (botín {0}). Agachado: más lento y con menos riesgo de alarma"), TierText);
 }
@@ -101,7 +109,7 @@ void ALootPoint::Interact_Implementation(AActor* InstigatorActor)
 {
 	APawn* Pawn = Cast<APawn>(InstigatorActor);
 	ABarrioPlayerState* State = Pawn ? Pawn->GetPlayerState<ABarrioPlayerState>() : nullptr;
-	if (!HasAuthority() || !State || !CanInteract_Implementation(InstigatorActor))
+	if (!HasAuthority() || !State || !State->IsCriminal() || !CanInteract_Implementation(InstigatorActor))
 	{
 		return;
 	}
@@ -113,7 +121,7 @@ void ALootPoint::Interact_Implementation(AActor* InstigatorActor)
 
 	Robber = Pawn;
 	RobberyEndTime = Now + Duration;
-	State->SetRobbery(RobberyEndTime, Duration);
+	State->SetAction(EBarrioActionKind::Robbery, RobberyEndTime, Duration);
 
 	FTimerManager& Timers = GetWorld()->GetTimerManager();
 	Timers.SetTimer(RobberyTimer, this, &ALootPoint::CheckRobbery, 0.2f, true);
@@ -146,7 +154,7 @@ void ALootPoint::CheckRobbery()
 		? Bounds.ComputeSquaredDistanceToPoint(Robber->GetActorLocation())
 		: FVector::DistSquared(GetActorLocation(), Robber->GetActorLocation());
 
-	if (!State || State->IsJailed() || DistanceSquared > FMath::Square(MaxRobDistance))
+	if (!State || !State->IsCriminal() || State->IsJailed() || State->IsSurrendered() || DistanceSquared > FMath::Square(MaxRobDistance))
 	{
 		CancelRobbery();
 		return;
@@ -166,9 +174,11 @@ void ALootPoint::CompleteRobbery()
 	if (State)
 	{
 		const FIntPoint Range = GetLootRange();
-		const int32 Value = FMath::RandRange(Range.X, Range.Y);
+		// La notoriedad (racha de robos sin salir del barrio) hace que el botín valga más.
+		const int32 Value = FMath::RoundToInt(FMath::RandRange(Range.X, Range.Y) * State->GetLootMultiplier());
 		State->AddCarriedLoot(Value);
-		State->ClearRobbery();
+		State->AddNotoriety(1);
+		State->ClearAction();
 		UE_LOG(LogBarrio, Log, TEXT("%s robó $%d de %s."), *GetNameSafe(Robber), Value, *GetName());
 	}
 
@@ -186,7 +196,7 @@ void ALootPoint::CancelRobbery()
 	{
 		if (ABarrioPlayerState* State = Robber->GetPlayerState<ABarrioPlayerState>())
 		{
-			State->ClearRobbery();
+			State->ClearAction();
 		}
 	}
 	Robber = nullptr;

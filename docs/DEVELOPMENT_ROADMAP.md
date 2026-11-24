@@ -18,9 +18,9 @@ Las reglas de roles y del juego están en [GAME_DESIGN_DOCUMENT.md](GAME_DESIGN_
 | 4 | Compilar y probar el MVP 0 en la PC de desarrollo | **Pendiente: bloquea las etapas de Unreal** | PC de desarrollo |
 | 5 | Servidor de juego en el VPS | Guía lista, depende de 4 | `infra/vps/` |
 | 6 | Unreal conectado al backend: pantalla de login, verificación de sesión, dinero persistente | **Código escrito, sin compilar** | `game/Source/BarrioOnline`, `BarrioUI` |
-| 6b | **Reglas de roles v2** según el documento de diseño: pasamontañas, salidas del barrio, la policía solo daña ladrones, rendición y esposas, pérdida total del ladrón, reducidor Afuera, salario de turno, notoriedad | Pendiente, diseño listo | `game/` |
-| 7 | MVP completo: bots policía, nivel de búsqueda por violencia, ganzúa y ventanas, inventario, moto, compensación de latencia | Pendiente | `game/` |
-| 8 | Arte del barrio (kit modular de Caseros) | Pendiente, en paralelo | Diseñador |
+| 6b | **Reglas de roles v2** según el documento de diseño: pasamontañas, salidas del barrio, la policía solo daña ladrones, zonas seguras, rendición y esposas, pérdida total del ladrón, reducidor Afuera, salario de turno, notoriedad, nivel de búsqueda por violencia | **Código escrito, sin compilar** | `game/` |
+| 7 | MVP completo: bots policía, ganzúa y ventanas, inventario, moto, compensación de latencia | Pendiente | `game/` |
+| 8 | Arte del barrio: kit modular de Caseros, personajes, armas, moto | Pendiente, en paralelo. Encargo definido en [ARTE_BRIEF.md](ARTE_BRIEF.md) | Diseñador y artistas |
 | 9 | Alpha cerrada con 16 jugadores | Pendiente | VPS |
 
 ## Detalle de lo que falta

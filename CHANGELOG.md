@@ -1,5 +1,27 @@
 # Changelog
 
+## [Sin publicar] Etapa 6b: reglas de roles v2
+
+Código escrito, pendiente de compilar. Implementa `docs/GAME_DESIGN_DOCUMENT.md`.
+
+### Agregado
+- Rol **ladrón**: el vecino se pone el pasamontañas (G, 2 s, fuera de zona segura) y deja de serlo solo al cruzar una salida del barrio (`AExitZone`).
+- `ASafeZone`: sin daño y sin pasamontañas adentro.
+- Regla central de daño (`UBarrioGameEvents::CanDamage`): vecinos sin armas, la policía solo daña ladrones, protección de 10 s al reaparecer como policía.
+- Captura: rendirse (Q), orden de rendición del policía (Q, +20 % en el arresto), esposar (E, 2,5 s) a un ladrón rendido o reducido; el arresto confisca el botín.
+- Salario policial acumulado en el turno: arresto $1.500 + 10 % del botín, abatir $300, matar a un rendido $0. Se cobra al terminar el turno o al desconectarse.
+- Notoriedad: cada robo seguido vale +10 % (hasta +50 %).
+- Nivel de búsqueda solo por violencia (+1 por vecino muerto, máximo 3); en nivel 3 toda la ciudad ve al ladrón.
+- Barrio gris con 40 m de terreno "Afuera" para el reducidor.
+- Backend: motivo `police_salary` (33 pruebas).
+- `docs/ARTE_BRIEF.md`: encargo de arte (prioridades, especificaciones técnicas, quién hace qué).
+
+### Cambiado
+- La alarma ya no pone al ladrón como buscado: solo marca dónde ocurre el robo.
+- Morir como ladrón: se pierde todo y se reaparece como vecino; ya no lleva a la cárcel.
+- El reducidor solo le compra a vecinos (hay que salir del barrio primero).
+- La comisaría: "entrar de servicio" o "terminar el turno y cobrar".
+
 ## [Sin publicar] Etapa 6: Unreal conectado al backend
 
 Código escrito, pendiente de compilar.

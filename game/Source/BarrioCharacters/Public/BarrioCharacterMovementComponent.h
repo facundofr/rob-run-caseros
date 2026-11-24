@@ -24,6 +24,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barrio|Movement", meta = (ClampMin = "0"))
 	float SprintSpeed = 600.f;
 
+	/** Velocidad máxima de un ladrón rendido, en cm/s. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barrio|Movement", meta = (ClampMin = "0"))
+	float SurrenderedSpeed = 100.f;
+
 	void SetSprinting(bool bNewSprinting) { bWantsToSprint = bNewSprinting; }
 	bool WantsToSprint() const { return bWantsToSprint; }
 

@@ -14,12 +14,16 @@ Juego multijugador de mundo abierto ambientado en Caseros, Zona Oeste del conurb
 
 Un barrio en gris de 4 manzanas donde se prueba el loop central con amigos:
 
-1. Un civil fuerza la puerta de una casa (puertas azules) y la roba.
-2. Puede sonar la alarma: la puerta se pone roja, el ladrón pasa a estar **buscado** y los policías cercanos ven "ALARMA" en pantalla.
-3. La policía persigue y arresta (E de cerca) o abate al sospechoso. Va a la cárcel y pierde el botín.
-4. Si el ladrón escapa, espera a que baje el nivel de buscado (1 nivel por minuto sin delitos) y vende el botín al reducidor.
+Las reglas completas están en [docs/GAME_DESIGN_DOCUMENT.md](docs/GAME_DESIGN_DOCUMENT.md). En resumen:
 
-Sin vehículos, sin backend (nada se guarda al salir) y sin bots policía.
+1. Todos entran como **vecinos**: no usan armas, no roban y no pierden nada al morir.
+2. Un vecino se pone el **pasamontañas** (G, 2 s) y pasa a ser **ladrón**: puede robar casas (puertas azules) y usar armas. Sigue siendo ladrón hasta **cruzar una salida del barrio**.
+3. Si suena una alarma, los policías cercanos ven "ALARMA" en pantalla. Robar seguido sin salir sube la **notoriedad**: el botín vale más.
+4. Un **policía** (mostrador de la comisaría, cupo de 1 cada 3 jugadores) solo puede dañar ladrones. Al ladrón **rendido** (Q) o **reducido** (poca vida) lo **esposa** (E, 2,5 s): cárcel y botín confiscado. Arrestar paga mucho más que abatir, y se cobra al terminar el turno.
+5. El ladrón que escapa vuelve a ser vecino y vende el botín al **reducidor**, que está Afuera.
+6. Morir siendo ladrón: se pierde todo lo que llevaba encima.
+
+Sin vehículos ni bots policía todavía.
 
 ## Estructura
 
@@ -88,15 +92,18 @@ Estos pasos crean assets (.uasset y .umap) que no se pueden escribir desde códi
 
 | Actor | Posición sugerida | Para qué |
 | --- | --- | --- |
-| `GreyboxNeighborhood` | `0, 0, 0` | Las 4 manzanas. Al dar Play crea una puerta robable en cada casa (80 en total) |
-| `Player Start` × 2 | `500, 500, 100` y `500, 11500, 100` | Aparición de civiles (sobre la calle) |
+| `GreyboxNeighborhood` | `0, 0, 0` | Las 4 manzanas más 40 m de terreno alrededor ("Afuera"). Al dar Play crea una puerta robable en cada casa (80 en total) |
+| `Player Start` × 2 | `500, 500, 100` y `500, 11500, 100` | Aparición de vecinos (sobre la calle) |
+| `SafeZone` | `500, 500, 100`, tamaño (Box Extent) `600, 600, 300` | Zona segura alrededor de la aparición: sin daño, sin pasamontañas |
 | `Player Start` × 1, con **Player Start Tag** = `Police` | `11500, 500, 100` | Aparición de policías |
-| `PoliceStation` | `11500, 800, 55` | Mostrador azul: unirse a la policía o dejarla |
-| `FenceStation` | `22500, 22500, 55` | Mostrador verde: el reducidor que compra el botín |
-| `JailCell` | `-5000, -5000, 200` | La celda, fuera del barrio |
+| `PoliceStation` | `11500, 800, 55` | Mostrador azul: entrar de servicio o terminar el turno y cobrar |
+| `SafeZone` | `11500, 600, 100`, tamaño `500, 500, 300` | Zona segura de la comisaría |
+| `ExitZone` × 2 | `-500, 11500, 100` y `23500, 11500, 100`, tamaño `500, 600, 300` | Salidas del barrio (cajas amarillas): cruzarlas deja de ser ladrón |
+| `FenceStation` | `-2500, 11500, 55` | Mostrador verde: el reducidor, Afuera, pasando la salida oeste |
+| `JailCell` | `-5000, -5000, 200` | La celda, lejos del barrio |
 | `InteractableTestActor` | opcional | El interruptor de prueba de la Fase 1 |
 
-El barrio va de `0` a `23000` en X y en Y (4 manzanas de 100 m y calles de 10 m). Las calles quedan entre las manzanas, por ejemplo en `X = 11500` o `Y = 11500`.
+El barrio va de `0` a `23000` en X y en Y (4 manzanas de 100 m y calles de 10 m); Afuera va de `-4000` a `27000`. Las calles quedan entre las manzanas, por ejemplo en `X = 11500` o `Y = 11500`. Las salidas están en los extremos de la calle del medio.
 
 ## Controles
 
@@ -107,8 +114,10 @@ El barrio va de `0` a `23000` en X y en Y (4 manzanas de 100 m y calles de 10 m)
 | Saltar | Espacio |
 | Correr | Shift izquierdo (mantener) |
 | Agacharse | C |
-| Interactuar (robar, vender, arrestar, comisaría) | E |
-| Disparar | Clic izquierdo |
+| Interactuar (robar, vender, esposar, comisaría) | E |
+| Ponerse el pasamontañas (vecino → ladrón) | G |
+| Rendirse (ladrón) / ordenar rendición (policía) | Q |
+| Disparar (solo ladrones y policías) | Clic izquierdo |
 | Recargar | R |
 
 Los controles se crean desde código. Para editarlos, se crean Input Actions y un Input Mapping Context como assets y se asignan en `BP_BarrioCharacter` (categoría *Barrio | Input*).
@@ -133,20 +142,43 @@ Junto al botón Play, en **⋮**: **Number of Players: 3**, **Net Mode: Play As 
 
 ### MVP 0: el loop completo (3 jugadores, Play As Client)
 
-Jugador A = ladrón, Jugador B = policía, Jugador C = civil.
+Jugador A = ladrón, Jugador B = policía, Jugador C = vecino.
 
-- [ ] B va a la comisaría (mostrador azul) y con E se une a la policía. Reaparece en el Player Start `Police` y su panel dice **POLICÍA**.
-- [ ] Un cuarto jugador no puede sumarse a la policía si el cupo está lleno (mensaje "Cupo de policía completo").
-- [ ] A roba una casa: aparece la barra "Robando...". Al alejarse antes de terminar, se cancela.
-- [ ] Al terminar, el panel de A muestra el botín encima.
-- [ ] Cuando suena una alarma: la puerta se pone roja, A ve "¡Sonó la alarma! Estás buscado", B ve "ALARMA xx m" y sobre A aparece "BUSCADO".
-- [ ] C no ve la alarma ni recibe avisos.
-- [ ] B se acerca a A y con E lo arresta: A aparece en la celda con la cuenta regresiva, pierde el botín, y B recibe la recompensa.
-- [ ] Al terminar la condena, A reaparece libre en un Player Start de civil.
-- [ ] A le dispara a C: A pasa a estar buscado. Si lo mata, sube 2 niveles más.
-- [ ] B abate a A estando buscado: A reaparece en la cárcel.
-- [ ] Un civil buscado no puede vender en el reducidor ("Estás buscado: el reducidor no te compra"). Al pasar los minutos sin delitos el nivel baja hasta 0 y ahí puede vender: el botín pasa a Dinero.
-- [ ] Al morir, el jugador reaparece a los 5 s y pierde el botín encima.
+**Roles**
+- [ ] Los tres aparecen como **VECINO**. Un vecino no puede disparar (el clic no hace nada) y frente a una puerta azul ve "Para robar, ponete el pasamontañas (G)".
+- [ ] Dentro de la zona segura, G muestra "Acá no te podés poner el pasamontañas".
+- [ ] B va a la comisaría y con E entra de servicio: reaparece en el Player Start `Police` y su panel dice **POLICÍA (de servicio)**.
+- [ ] Un cuarto jugador no puede entrar de servicio si el cupo está lleno ("Cupo de policía completo").
+- [ ] A, fuera de la zona segura, aprieta G: barra de 2 s y pasa a **LADRÓN**. Los demás ven "LADRÓN" sobre su cabeza.
+- [ ] Un ladrón no puede entrar de servicio en la comisaría.
+
+**Robo y alarma**
+- [ ] A roba una casa: barra "Robando...". Si se aleja antes de terminar, se cancela.
+- [ ] Al terminar, el panel muestra el botín y la notoriedad sube 1. El segundo robo seguido rinde más (+10 % por nivel).
+- [ ] Si suena la alarma: la puerta se pone roja, A ve "¡Sonó la alarma!", B ve "ALARMA xx m", C no ve nada.
+
+**Daño**
+- [ ] B le dispara a C (vecino): no le hace daño. B le dispara a A (ladrón): sí.
+- [ ] Nadie recibe daño dentro de una zona segura.
+- [ ] A mata a C: el nivel de búsqueda de A sube 1. Con 3 muertes, B y C ven a A marcado como "MÁS BUSCADO" desde cualquier distancia.
+
+**Captura**
+- [ ] B aprieta Q cerca de A: A ve "¡POLICÍA! ¡Rendite! (Q)".
+- [ ] A aprieta Q: queda **RENDIDO**, camina lento y no puede disparar.
+- [ ] B mira a A y aprieta E: barra "Esposando..." de 2,5 s. A va a la celda con la cuenta regresiva, pierde el botín, y el panel de B suma la ganancia (+20 % si dio la orden de rendición antes).
+- [ ] Si B se aleja durante el esposado, falla ("Se te escapó").
+- [ ] Un ladrón con poca vida (25 % o menos) también se puede esposar sin rendirse.
+- [ ] B abate a A sin que se rinda: +$300. Si A estaba rendido: "no se paga".
+- [ ] Al terminar la condena, A reaparece como **vecino**.
+
+**Escape y venta**
+- [ ] A, con botín, cruza una salida (caja amarilla): "Saliste del barrio: ya no sos ladrón". Su panel dice VECINO con "Botín para vender".
+- [ ] Con el pasamontañas puesto el reducidor no le compra. Ya como vecino, vende: el botín pasa a Banco.
+- [ ] A muere siendo ladrón: pierde todo el botín y reaparece como vecino.
+
+**Turno policial**
+- [ ] B termina el turno en la comisaría: cobra las ganancias acumuladas y vuelve a ser vecino.
+- [ ] B muere de servicio: reaparece como policía en la comisaría, con 10 s sin recibir daño.
 
 ### MVP 0 en el VPS
 

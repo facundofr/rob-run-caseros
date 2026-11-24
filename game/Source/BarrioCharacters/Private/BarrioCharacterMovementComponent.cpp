@@ -1,4 +1,5 @@
 #include "BarrioCharacterMovementComponent.h"
+#include "BarrioPlayerState.h"
 #include "GameFramework/Character.h"
 
 namespace
@@ -80,6 +81,13 @@ UBarrioCharacterMovementComponent::UBarrioCharacterMovementComponent()
 
 float UBarrioCharacterMovementComponent::GetMaxSpeed() const
 {
+	// Un ladrón rendido camina con las manos arriba: lento y sin correr.
+	const ABarrioPlayerState* State = PawnOwner ? PawnOwner->GetPlayerState<ABarrioPlayerState>() : nullptr;
+	if (State && State->IsSurrendered())
+	{
+		return SurrenderedSpeed;
+	}
+
 	if (MovementMode == MOVE_Walking && bWantsToSprint && !IsCrouching())
 	{
 		return SprintSpeed;

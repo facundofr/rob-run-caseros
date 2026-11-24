@@ -48,9 +48,13 @@ void ABarrioGameMode::BeginPlay()
 		EventHandles.Add(Events->OnAlarm.AddUObject(this, &ABarrioGameMode::HandleAlarm));
 		EventHandles.Add(Events->OnDamage.AddUObject(this, &ABarrioGameMode::HandleDamage));
 		EventHandles.Add(Events->OnKill.AddUObject(this, &ABarrioGameMode::HandleKill));
-		EventHandles.Add(Events->OnArrestRequested.AddUObject(this, &ABarrioGameMode::HandleArrest));
+		EventHandles.Add(Events->OnCuffRequested.AddUObject(this, &ABarrioGameMode::HandleCuffRequested));
 		EventHandles.Add(Events->OnRoleRequested.AddUObject(this, &ABarrioGameMode::HandleRoleRequest));
 		EventHandles.Add(Events->OnSellLootRequested.AddUObject(this, &ABarrioGameMode::HandleSellLoot));
+		EventHandles.Add(Events->OnMaskRequested.AddUObject(this, &ABarrioGameMode::HandleMaskRequested));
+		EventHandles.Add(Events->OnSurrenderToggled.AddUObject(this, &ABarrioGameMode::HandleSurrenderToggled));
+		EventHandles.Add(Events->OnSurrenderOrder.AddUObject(this, &ABarrioGameMode::HandleSurrenderOrder));
+		EventHandles.Add(Events->OnLeftNeighborhood.AddUObject(this, &ABarrioGameMode::HandleLeftNeighborhood));
 	}
 
 	GetWorldTimerManager().SetTimer(RulesTimer, this, &ABarrioGameMode::TickRules, 1.f, true);
@@ -171,6 +175,20 @@ void ABarrioGameMode::Logout(AController* Exiting)
 		PendingTokens.Remove(Controller);
 		VerifiedPlayers.Remove(Controller);
 	}
+
+	if (ABarrioPlayerState* State = StateOf(Exiting))
+	{
+		if (State->IsPolice())
+		{
+			PayShift(State, FString()); // el policía cobra lo acumulado aunque se desconecte
+		}
+		else if (State->IsCriminal())
+		{
+			// Desconectarse siendo ladrón = morir: el botín no se guarda en ningún lado y se pierde.
+			UE_LOG(LogBarrio, Log, TEXT("%s se desconectó siendo ladrón: pierde $%d de botín."), *State->GetPlayerName(), State->GetCarriedLoot());
+		}
+	}
+	SuspectsBeingCuffed.Remove(Exiting);
 	Super::Logout(Exiting);
 }
 
@@ -219,7 +237,7 @@ void ABarrioGameMode::GrantCash(ABarrioPlayerState* State, int32 Amount, const F
 void ABarrioGameMode::HandleSellLoot(AController* Seller)
 {
 	ABarrioPlayerState* State = StateOf(Seller);
-	if (!State || State->IsPolice() || State->IsWanted() || State->IsJailed() || State->GetCarriedLoot() <= 0)
+	if (!State || !State->IsCivilian() || State->IsJailed() || State->GetCarriedLoot() <= 0)
 	{
 		return;
 	}
@@ -266,9 +284,13 @@ void ABarrioGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			Events->OnAlarm.Remove(Handle);
 			Events->OnDamage.Remove(Handle);
 			Events->OnKill.Remove(Handle);
-			Events->OnArrestRequested.Remove(Handle);
+			Events->OnCuffRequested.Remove(Handle);
 			Events->OnRoleRequested.Remove(Handle);
 			Events->OnSellLootRequested.Remove(Handle);
+			Events->OnMaskRequested.Remove(Handle);
+			Events->OnSurrenderToggled.Remove(Handle);
+			Events->OnSurrenderOrder.Remove(Handle);
+			Events->OnLeftNeighborhood.Remove(Handle);
 		}
 	}
 	EventHandles.Reset();
@@ -337,6 +359,15 @@ void ABarrioGameMode::RespawnLater(TWeakObjectPtr<AController> Player)
 		{
 			RestartPlayer(Controller);
 		}
+
+		// El policía reaparece con unos segundos de protección.
+		if (ABarrioPlayerState* State = StateOf(Controller))
+		{
+			if (State->IsPolice())
+			{
+				State->SpawnProtectedUntil = Now() + PoliceSpawnProtection;
+			}
+		}
 	}
 }
 
@@ -346,14 +377,8 @@ void ABarrioGameMode::RespawnLater(TWeakObjectPtr<AController> Player)
 
 void ABarrioGameMode::HandleAlarm(const FVector& Location, AController* Suspect)
 {
-	if (ABarrioPlayerState* SuspectState = StateOf(Suspect))
-	{
-		if (!SuspectState->IsPolice())
-		{
-			SuspectState->AddWanted(1, Now());
-			ShowMessage(Suspect, TEXT("¡Sonó la alarma! Estás buscado."));
-		}
-	}
+	// La alarma marca DÓNDE está pasando el robo; no identifica al ladrón ni sube su búsqueda.
+	ShowMessage(Suspect, TEXT("¡Sonó la alarma! La policía va a venir."));
 
 	// Avisar a los policías cercanos; si no hay ninguno cerca, a todos.
 	TArray<ABarrioPlayerController*> Nearby;
@@ -385,22 +410,15 @@ void ABarrioGameMode::HandleDamage(AController* Victim, AController* DamageInsti
 {
 	ABarrioPlayerState* VictimState = StateOf(Victim);
 	ABarrioPlayerState* ShooterState = StateOf(DamageInstigator);
-	if (!VictimState || !ShooterState || Victim == DamageInstigator || ShooterState->IsPolice())
+	if (!VictimState || !ShooterState || Victim == DamageInstigator)
 	{
 		return;
 	}
 
-	// Un civil que le dispara a un policía o a un inocente pasa a estar buscado.
-	if (VictimState->IsPolice() || !VictimState->IsWanted())
+	// Un ladrón que lastima vecinos no deja bajar su nivel de búsqueda mientras siga.
+	if (ShooterState->IsCriminal() && VictimState->IsCivilian() && ShooterState->GetWantedLevel() > 0)
 	{
-		if (ShooterState->IsWanted())
-		{
-			ShooterState->LastCrimeTime = Now(); // no baja el nivel mientras siga disparando
-		}
-		else
-		{
-			ShooterState->AddWanted(1, Now());
-		}
+		ShooterState->LastCrimeTime = Now();
 	}
 }
 
@@ -411,30 +429,38 @@ void ABarrioGameMode::HandleKill(AController* Victim, AController* Killer)
 
 	if (VictimState && KillerState && Victim != Killer)
 	{
-		if (KillerState->IsPolice())
+		if (KillerState->IsPolice() && VictimState->IsCriminal())
 		{
-			if (VictimState->IsWanted())
+			// Matar a un rendido no paga: la regla empuja a arrestar vivo.
+			if (VictimState->IsSurrendered())
 			{
-				RewardPolice(KillerState, VictimState->GetWantedLevel());
-				Jail(VictimState); // reaparece en la cárcel
-				ShowMessage(Victim, TEXT("Te abatió la policía. Vas a la cárcel."));
+				ShowMessage(Killer, TEXT("Mataste a un ladrón rendido: no se paga."));
+				UE_LOG(LogBarrio, Warning, TEXT("%s mató a un ladrón rendido."), *KillerState->GetPlayerName());
 			}
 			else
 			{
-				UE_LOG(LogBarrio, Warning, TEXT("Un policía mató a un civil no buscado (%s)."), *GetNameSafe(VictimState));
+				KillerState->AddShiftEarnings(KillCriminalReward);
+				ShowMessage(Killer, FString::Printf(TEXT("Ladrón abatido: +$%d (arrestarlo paga mucho más)."), KillCriminalReward));
 			}
 		}
-		else
+		else if (KillerState->IsCriminal() && VictimState->IsCivilian())
 		{
-			KillerState->AddWanted(VictimState->IsPolice() ? 3 : (VictimState->IsWanted() ? 0 : 2), Now());
+			KillerState->AddWanted(1, Now()); // +1 por cada vecino muerto; en 3, toda la ciudad lo ve
 		}
 	}
 
 	if (VictimState)
 	{
-		VictimState->TakeCarriedLoot(); // el botín se pierde al morir
-		VictimState->ClearRobbery();
+		// Al morir se pierde el botín. El ladrón pierde además su condición: vuelve como vecino.
+		VictimState->TakeCarriedLoot();
+		VictimState->ClearAction();
+		if (VictimState->IsCriminal())
+		{
+			VictimState->ResetCriminalState();
+			ShowMessage(Victim, TEXT("Moriste como ladrón: perdiste todo lo que llevabas."));
+		}
 	}
+	SuspectsBeingCuffed.Remove(Victim);
 
 	// El cuerpo queda unos segundos; el jugador reaparece después.
 	if (Victim)
@@ -452,20 +478,187 @@ void ABarrioGameMode::HandleKill(AController* Victim, AController* Killer)
 	}
 }
 
-void ABarrioGameMode::HandleArrest(AController* Police, AController* Suspect)
+// --- Pasamontañas ------------------------------------------------------------------------------
+
+void ABarrioGameMode::HandleMaskRequested(AController* Player)
 {
-	ABarrioPlayerState* PoliceState = StateOf(Police);
-	ABarrioPlayerState* SuspectState = StateOf(Suspect);
-	if (!PoliceState || !SuspectState || !PoliceState->IsPolice() || !SuspectState->IsWanted() || SuspectState->IsJailed())
+	ABarrioPlayerState* State = StateOf(Player);
+	const APawn* Pawn = Player ? Player->GetPawn() : nullptr;
+	const UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
+	if (!State || !Pawn || !Events || !State->IsCivilian() || State->IsJailed() || State->GetActionKind() != EBarrioActionKind::None)
+	{
+		return;
+	}
+	if (Events->IsInSafeZone(Pawn->GetActorLocation()))
+	{
+		ShowMessage(Player, TEXT("Acá no te podés poner el pasamontañas."));
+		return;
+	}
+
+	State->SetAction(EBarrioActionKind::PuttingMask, Now() + MaskDuration, MaskDuration);
+	FTimerHandle Handle;
+	GetWorldTimerManager().SetTimer(Handle,
+		FTimerDelegate::CreateUObject(this, &ABarrioGameMode::FinishMask, TWeakObjectPtr<AController>(Player)), MaskDuration, false);
+}
+
+void ABarrioGameMode::FinishMask(TWeakObjectPtr<AController> Player)
+{
+	AController* Controller = Player.Get();
+	ABarrioPlayerState* State = StateOf(Controller);
+	const APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
+	const UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
+	if (!State || State->GetActionKind() != EBarrioActionKind::PuttingMask)
+	{
+		return;
+	}
+	State->ClearAction();
+
+	if (!Pawn || !Events || !State->IsCivilian() || Events->IsInSafeZone(Pawn->GetActorLocation()))
 	{
 		return;
 	}
 
-	RewardPolice(PoliceState, SuspectState->GetWantedLevel());
+	State->SetBarrioRole(EBarrioRole::Criminal);
+	ShowMessage(Controller, TEXT("Te pusiste el pasamontañas. Sos ladrón hasta que salgas del barrio."));
+}
+
+// --- Salida del barrio -------------------------------------------------------------------------
+
+void ABarrioGameMode::HandleLeftNeighborhood(AController* Player)
+{
+	ABarrioPlayerState* State = StateOf(Player);
+	if (!State || !State->IsCriminal() || State->IsSurrendered())
+	{
+		return; // un ladrón rendido no escapa caminando
+	}
+
+	State->ResetCriminalState();
+	State->ClearAction();
+	SuspectsBeingCuffed.Remove(Player);
+	ShowMessage(Player, State->GetCarriedLoot() > 0
+		? TEXT("Saliste del barrio: ya no sos ladrón. Vendé el botín al reducidor.")
+		: TEXT("Saliste del barrio: ya no sos ladrón."));
+}
+
+// --- Rendición y esposas -----------------------------------------------------------------------
+
+void ABarrioGameMode::HandleSurrenderToggled(AController* Player)
+{
+	ABarrioPlayerState* State = StateOf(Player);
+	if (!State || !State->IsCriminal() || SuspectsBeingCuffed.Contains(Player))
+	{
+		return; // mientras lo esposan no puede dejar de estar rendido
+	}
+
+	const bool bSurrender = !State->IsSurrendered();
+	State->SetCaptureState(bSurrender ? EBarrioCaptureState::Surrendered : EBarrioCaptureState::Free);
+	ShowMessage(Player, bSurrender
+		? TEXT("Te rendiste: no podés disparar ni correr. Q para dejar de estar rendido.")
+		: TEXT("Ya no estás rendido."));
+}
+
+void ABarrioGameMode::HandleSurrenderOrder(AController* Police)
+{
+	ABarrioPlayerState* PoliceState = StateOf(Police);
+	const APawn* PolicePawn = Police ? Police->GetPawn() : nullptr;
+	if (!PoliceState || !PoliceState->IsPolice() || !PolicePawn)
+	{
+		return;
+	}
+
+	PoliceState->LastSurrenderOrderTime = Now();
+	ShowMessage(Police, TEXT("Diste la orden de rendición: el próximo arresto paga +20 %."));
+
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		const ABarrioPlayerState* State = Cast<ABarrioPlayerState>(PlayerState);
+		const APawn* Pawn = State ? State->GetPawn() : nullptr;
+		if (State && Pawn && State->IsCriminal()
+			&& FVector::DistSquared(Pawn->GetActorLocation(), PolicePawn->GetActorLocation()) <= FMath::Square(SurrenderOrderRadius))
+		{
+			ShowMessage(Cast<AController>(State->GetOwner()), TEXT("¡POLICÍA! ¡Rendite! (Q)"));
+		}
+	}
+}
+
+void ABarrioGameMode::HandleCuffRequested(AController* Police, AController* Suspect)
+{
+	ABarrioPlayerState* PoliceState = StateOf(Police);
+	ABarrioPlayerState* SuspectState = StateOf(Suspect);
+	if (!PoliceState || !SuspectState || !PoliceState->IsPolice() || !SuspectState->IsCriminal()
+		|| SuspectState->IsJailed() || SuspectsBeingCuffed.Contains(Suspect)
+		|| PoliceState->GetActionKind() != EBarrioActionKind::None)
+	{
+		return;
+	}
+
+	SuspectsBeingCuffed.Add(Suspect);
+	PoliceState->SetAction(EBarrioActionKind::Cuffing, Now() + CuffDuration, CuffDuration);
+	ShowMessage(Suspect, TEXT("Te están esposando."));
+
+	FTimerHandle Handle;
+	GetWorldTimerManager().SetTimer(Handle,
+		FTimerDelegate::CreateUObject(this, &ABarrioGameMode::FinishCuffing, TWeakObjectPtr<AController>(Police), TWeakObjectPtr<AController>(Suspect)),
+		CuffDuration, false);
+}
+
+void ABarrioGameMode::FinishCuffing(TWeakObjectPtr<AController> Police, TWeakObjectPtr<AController> Suspect)
+{
+	AController* PoliceController = Police.Get();
+	AController* SuspectController = Suspect.Get();
+	SuspectsBeingCuffed.Remove(Suspect);
+
+	ABarrioPlayerState* PoliceState = StateOf(PoliceController);
+	if (PoliceState)
+	{
+		PoliceState->ClearAction();
+	}
+
+	APawn* PolicePawn = PoliceController ? PoliceController->GetPawn() : nullptr;
+	APawn* SuspectPawn = SuspectController ? SuspectController->GetPawn() : nullptr;
+	if (!PoliceState || !PolicePawn || !SuspectPawn)
+	{
+		return;
+	}
+
+	// Al terminar los 2,5 s tiene que seguir cerca y seguir siendo esposable (rendido o reducido).
+	const bool bClose = FVector::DistSquared(PolicePawn->GetActorLocation(), SuspectPawn->GetActorLocation()) <= FMath::Square(CuffMaxDistance);
+	const bool bStillValid = SuspectPawn->Implements<UInteractable>() && IInteractable::Execute_CanInteract(SuspectPawn, PolicePawn);
+	if (!bClose || !bStillValid)
+	{
+		ShowMessage(PoliceController, TEXT("Se te escapó: no pudiste esposarlo."));
+		return;
+	}
+
+	Arrest(PoliceController, SuspectController);
+}
+
+void ABarrioGameMode::Arrest(AController* Police, AController* Suspect)
+{
+	ABarrioPlayerState* PoliceState = StateOf(Police);
+	ABarrioPlayerState* SuspectState = StateOf(Suspect);
+	if (!PoliceState || !SuspectState)
+	{
+		return;
+	}
+
+	// Arrestar paga mucho más que abatir: base + parte del botín confiscado (+20 % con orden de rendición).
+	const int32 Confiscated = SuspectState->TakeCarriedLoot();
+	float Reward = ArrestBaseReward + Confiscated * ArrestLootShare;
+	if (Now() - PoliceState->LastSurrenderOrderTime <= SurrenderOrderWindow)
+	{
+		Reward *= 1.f + SurrenderOrderBonus;
+	}
+	const int32 Paid = FMath::RoundToInt(Reward);
+	PoliceState->AddShiftEarnings(Paid);
+
+	ShowMessage(Police, FString::Printf(TEXT("Arresto: +$%d (se cobra al terminar el turno). Botín confiscado: $%d."), Paid, Confiscated));
+	ShowMessage(Suspect, TEXT("Te arrestaron: perdiste el botín y vas a la celda."));
 	Jail(SuspectState);
-	ShowMessage(Suspect, TEXT("Te arrestaron."));
 	RespawnNow(Suspect);
 }
+
+// --- Comisaría: entrar de servicio y terminar el turno -----------------------------------------
 
 void ABarrioGameMode::HandleRoleRequest(AController* Player, EBarrioRole RequestedRole)
 {
@@ -477,9 +670,9 @@ void ABarrioGameMode::HandleRoleRequest(AController* Player, EBarrioRole Request
 
 	if (RequestedRole == EBarrioRole::Police)
 	{
-		if (State->IsWanted() || State->GetCarriedLoot() > 0)
+		if (!State->IsCivilian() || State->GetCarriedLoot() > 0)
 		{
-			ShowMessage(Player, TEXT("No podés unirte a la policía estando buscado o con botín encima."));
+			ShowMessage(Player, TEXT("Para entrar de servicio tenés que ser vecino y no llevar botín."));
 			return;
 		}
 		if (CountPolice() >= GetPoliceQuota())
@@ -487,11 +680,34 @@ void ABarrioGameMode::HandleRoleRequest(AController* Player, EBarrioRole Request
 			ShowMessage(Player, FString::Printf(TEXT("Cupo de policía completo (%d)."), GetPoliceQuota()));
 			return;
 		}
+
+		State->SetBarrioRole(EBarrioRole::Police);
+		ShowMessage(Player, TEXT("Entraste de servicio. Solo podés dañar ladrones; arrestar paga más que abatir."));
+		RespawnNow(Player);
+		return;
 	}
 
-	State->SetBarrioRole(RequestedRole);
-	ShowMessage(Player, RequestedRole == EBarrioRole::Police ? TEXT("Ahora sos policía.") : TEXT("Dejaste la policía."));
-	RespawnNow(Player);
+	if (RequestedRole == EBarrioRole::Civilian && State->IsPolice())
+	{
+		PayShift(State, TEXT("Terminaste el turno."));
+		State->SetBarrioRole(EBarrioRole::Civilian);
+		RespawnNow(Player);
+	}
+}
+
+void ABarrioGameMode::PayShift(ABarrioPlayerState* Police, const FString& Message)
+{
+	const int32 Earned = FMath::Min(Police->TakeShiftEarnings(), ShiftSalaryCap);
+	AController* Controller = Cast<AController>(Police->GetOwner());
+	if (Earned <= 0)
+	{
+		if (!Message.IsEmpty())
+		{
+			ShowMessage(Controller, Message + TEXT(" No hubo ganancias en este turno."));
+		}
+		return;
+	}
+	GrantCash(Police, Earned, TEXT("police_salary"), FString::Printf(TEXT("%s Cobraste $%d."), *Message, Earned));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -518,7 +734,7 @@ void ABarrioGameMode::TickRules()
 			RespawnNow(Controller);
 		}
 
-		if (State->IsWanted() && Time - State->LastCrimeTime >= WantedDecayInterval)
+		if (State->GetWantedLevel() > 0 && Time - State->LastCrimeTime >= WantedDecayInterval)
 		{
 			State->SetWantedLevel(State->GetWantedLevel() - 1);
 			State->LastCrimeTime = Time;
@@ -530,16 +746,10 @@ void ABarrioGameMode::Jail(ABarrioPlayerState* Suspect)
 {
 	const float Sentence = JailBaseTime + JailTimePerWantedLevel * Suspect->GetWantedLevel();
 	Suspect->SetJailed(true, Now() + Sentence);
-	Suspect->SetWantedLevel(0);
+	Suspect->ResetCriminalState(); // sale de la celda como vecino
 	Suspect->TakeCarriedLoot();
-	Suspect->ClearRobbery();
+	Suspect->ClearAction();
 	UE_LOG(LogBarrio, Log, TEXT("%s va preso por %.0f s."), *Suspect->GetPlayerName(), Sentence);
-}
-
-void ABarrioGameMode::RewardPolice(ABarrioPlayerState* Police, int32 WantedLevel)
-{
-	const int32 Reward = ArrestRewardPerWantedLevel * FMath::Max(1, WantedLevel);
-	GrantCash(Police, Reward, TEXT("arrest_reward"), FString::Printf(TEXT("Captura: +$%d"), Reward));
 }
 
 void ABarrioGameMode::ShowMessage(AController* Player, const FString& Message) const

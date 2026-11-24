@@ -160,16 +160,25 @@ void ABarrioHUD::DrawHUD()
 		DrawCentered(TEXT("Reapareciendo en unos segundos..."), WantedColor, CenterY - 20.f, BigFont);
 	}
 
-	// --- Barra de robo --------------------------------------------------------------------
-	if (MyState && MyState->GetRobberyDuration() > 0.f)
+	// --- Barra de la acción en curso (robo, pasamontañas, esposas) ------------------------
+	if (MyState && MyState->GetActionKind() != EBarrioActionKind::None && MyState->GetActionDuration() > 0.f)
 	{
-		const float Remaining = MyState->GetRobberyEndTime() - ServerTime;
-		const float Progress = FMath::Clamp(1.f - Remaining / MyState->GetRobberyDuration(), 0.f, 1.f);
+		const float Remaining = MyState->GetActionEndTime() - ServerTime;
+		const float Progress = FMath::Clamp(1.f - Remaining / MyState->GetActionDuration(), 0.f, 1.f);
 		const float BarWidth = 300.f;
 		const float BarY = CenterY + 80.f;
 		DrawRect(FLinearColor(0.f, 0.f, 0.f, 0.6f), CenterX - BarWidth * 0.5f, BarY, BarWidth, 14.f);
 		DrawRect(FLinearColor(0.9f, 0.75f, 0.1f), CenterX - BarWidth * 0.5f, BarY, BarWidth * Progress, 14.f);
-		DrawCentered(TEXT("Robando... (no te alejes)"), FLinearColor::White, BarY + 18.f, Font);
+
+		const TCHAR* Label = TEXT("");
+		switch (MyState->GetActionKind())
+		{
+		case EBarrioActionKind::Robbery:     Label = TEXT("Robando... (no te alejes)"); break;
+		case EBarrioActionKind::PuttingMask: Label = TEXT("Poniéndote el pasamontañas..."); break;
+		case EBarrioActionKind::Cuffing:     Label = TEXT("Esposando... (quedate cerca)"); break;
+		default: break;
+		}
+		DrawCentered(Label, FLinearColor::White, BarY + 18.f, Font);
 	}
 
 	// --- Panel del jugador (arriba a la izquierda) ----------------------------------------
@@ -182,13 +191,30 @@ void ABarrioHUD::DrawHUD()
 
 	if (MyState)
 	{
-		PanelLine(MyState->IsPolice() ? TEXT("POLICÍA") : TEXT("CIVIL"), MyState->IsPolice() ? PoliceColor : FLinearColor::White);
-		if (!MyState->IsPolice())
+		switch (MyState->GetBarrioRole())
 		{
-			PanelLine(FString::Printf(TEXT("Buscado: %s"), *Stars(MyState->GetWantedLevel())), MyState->IsWanted() ? WantedColor : FLinearColor::Gray);
+		case EBarrioRole::Police:
+			PanelLine(TEXT("POLICÍA (de servicio)"), PoliceColor);
+			PanelLine(FString::Printf(TEXT("Ganancias del turno: $%d"), MyState->GetShiftEarnings()), FLinearColor::Green);
+			PanelLine(TEXT("Q: orden de rendición  |  E: esposar"), FLinearColor::Gray);
+			break;
+		case EBarrioRole::Criminal:
+			PanelLine(MyState->IsSurrendered() ? TEXT("LADRÓN (RENDIDO)") : TEXT("LADRÓN"), WantedColor);
 			PanelLine(FString::Printf(TEXT("Botín encima: $%d"), MyState->GetCarriedLoot()), FLinearColor::Yellow);
+			PanelLine(FString::Printf(TEXT("Notoriedad: %d (botín +%d %%)"), MyState->GetNotoriety(), MyState->GetNotoriety() * 10), FLinearColor::Yellow);
+			PanelLine(FString::Printf(TEXT("Búsqueda: %s"), *Stars(MyState->GetWantedLevel())), MyState->GetWantedLevel() > 0 ? WantedColor : FLinearColor::Gray);
+			PanelLine(TEXT("Escapá por una salida del barrio  |  Q: rendirse"), FLinearColor::Gray);
+			break;
+		default:
+			PanelLine(TEXT("VECINO"), FLinearColor::White);
+			if (MyState->GetCarriedLoot() > 0)
+			{
+				PanelLine(FString::Printf(TEXT("Botín para vender: $%d"), MyState->GetCarriedLoot()), FLinearColor::Yellow);
+			}
+			PanelLine(TEXT("G: ponerse el pasamontañas"), FLinearColor::Gray);
+			break;
 		}
-		PanelLine(FString::Printf(TEXT("Dinero: $%d"), MyState->GetCash()), FLinearColor::Green);
+		PanelLine(FString::Printf(TEXT("Banco: $%d"), MyState->GetCash()), FLinearColor::Green);
 	}
 
 	if (Character)
@@ -233,7 +259,10 @@ void ABarrioHUD::DrawHUD()
 			}
 
 			const FVector Head = OtherPawn->GetActorLocation() + FVector(0.f, 0.f, 120.f);
-			if (FVector::Dist(Head, CameraLocation) > 4000.f || !IsInFront(Head))
+			const float Distance = FVector::Dist(Head, CameraLocation);
+			// Los "más buscados" (nivel 3) se ven desde cualquier distancia: toda la ciudad sabe dónde están.
+			const bool bVisibleFromAfar = Other->IsMostWanted();
+			if ((!bVisibleFromAfar && Distance > 4000.f) || !IsInFront(Head))
 			{
 				continue;
 			}
@@ -245,14 +274,22 @@ void ABarrioHUD::DrawHUD()
 				Label = TEXT("POLICÍA");
 				Color = PoliceColor;
 			}
-			else if (Other->IsWanted())
+			else if (Other->IsCriminal())
 			{
-				Label = FString::Printf(TEXT("BUSCADO %s"), *Stars(Other->GetWantedLevel()));
+				Label = Other->IsSurrendered() ? TEXT("LADRÓN (RENDIDO)") : TEXT("LADRÓN");
+				if (Other->GetWantedLevel() > 0)
+				{
+					Label += FString::Printf(TEXT(" %s"), *Stars(Other->GetWantedLevel()));
+				}
+				if (bVisibleFromAfar)
+				{
+					Label += FString::Printf(TEXT(" - MÁS BUSCADO (%d m)"), FMath::RoundToInt(Distance / 100.f));
+				}
 				Color = WantedColor;
 			}
 			else
 			{
-				continue; // los civiles no buscados no llevan marca
+				continue; // los vecinos no llevan marca
 			}
 
 			const FVector Screen = Project(Head);

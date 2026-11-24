@@ -1,11 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/HitResult.h"
 #include "GameFramework/Actor.h"
 #include "Interactable.h"
 #include "BarrioStations.generated.h"
 
 class UStaticMeshComponent;
+class UBoxComponent;
+class UPrimitiveComponent;
 
 /** Bloque gris de color fijo, base de los puntos fijos del mapa. */
 UCLASS(Abstract)
@@ -55,6 +58,62 @@ public:
 	virtual FText GetInteractionText_Implementation(const AActor* InstigatorActor) const override;
 	virtual bool CanInteract_Implementation(const AActor* InstigatorActor) const override;
 	virtual void Interact_Implementation(AActor* InstigatorActor) override;
+};
+
+/** Caja invisible en el juego (visible en el editor y en el mapa gris) que marca una zona. */
+UCLASS(Abstract)
+class BARRIOWORLD_API ABarrioZone : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ABarrioZone();
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Barrio")
+	TObjectPtr<UBoxComponent> Area;
+};
+
+/**
+ * Salida del barrio (paso a nivel, avenida). Cruzarla es la ÚNICA forma de dejar de ser ladrón:
+ * el jugador vuelve a ser vecino, con el botín encima, listo para venderlo Afuera.
+ * Ubicarla en el borde del barrio; el reducidor va del otro lado.
+ */
+UCLASS()
+class BARRIOWORLD_API AExitZone : public ABarrioZone
+{
+	GENERATED_BODY()
+
+public:
+	AExitZone();
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION()
+	void OnAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+};
+
+/**
+ * Zona segura (punto de llegada, interior de la comisaría): nadie recibe daño adentro
+ * y no se puede poner el pasamontañas.
+ */
+UCLASS()
+class BARRIOWORLD_API ASafeZone : public ABarrioZone
+{
+	GENERATED_BODY()
+
+public:
+	ASafeZone();
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+	FBox RegisteredBounds;
 };
 
 /**

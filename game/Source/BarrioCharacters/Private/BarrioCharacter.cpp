@@ -125,6 +125,8 @@ void ABarrioCharacter::CreateDefaultInputIfNeeded()
 	InteractAction = MakeAction(TEXT("IA_Interact_Default"), EInputActionValueType::Boolean);
 	FireAction = MakeAction(TEXT("IA_Fire_Default"), EInputActionValueType::Boolean);
 	ReloadAction = MakeAction(TEXT("IA_Reload_Default"), EInputActionValueType::Boolean);
+	MaskAction = MakeAction(TEXT("IA_Mask_Default"), EInputActionValueType::Boolean);
+	SurrenderAction = MakeAction(TEXT("IA_Surrender_Default"), EInputActionValueType::Boolean);
 
 	UInputMappingContext* Context = NewObject<UInputMappingContext>(this, TEXT("IMC_Default"));
 
@@ -153,6 +155,8 @@ void ABarrioCharacter::CreateDefaultInputIfNeeded()
 	Context->MapKey(InteractAction, EKeys::E);
 	Context->MapKey(FireAction, EKeys::LeftMouseButton);
 	Context->MapKey(ReloadAction, EKeys::R);
+	Context->MapKey(MaskAction, EKeys::G);
+	Context->MapKey(SurrenderAction, EKeys::Q);
 
 	DefaultMappingContext = Context;
 }
@@ -186,6 +190,8 @@ void ABarrioCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	if (InteractAction) { Input->BindAction(InteractAction, ETriggerEvent::Started, this, &ABarrioCharacter::RequestInteract); }
 	if (FireAction)     { Input->BindAction(FireAction, ETriggerEvent::Started, this, &ABarrioCharacter::RequestFire); }
 	if (ReloadAction)   { Input->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABarrioCharacter::RequestReload); }
+	if (MaskAction)     { Input->BindAction(MaskAction, ETriggerEvent::Started, this, &ABarrioCharacter::RequestMask); }
+	if (SurrenderAction) { Input->BindAction(SurrenderAction, ETriggerEvent::Started, this, &ABarrioCharacter::PressSurrenderKey); }
 }
 
 void ABarrioCharacter::PawnClientRestart()
@@ -273,6 +279,61 @@ void ABarrioCharacter::RequestReload()
 	}
 }
 
+void ABarrioCharacter::RequestMask()
+{
+	const ABarrioPlayerState* State = GetBarrioPlayerState();
+	if (!IsDead() && State && State->IsCivilian())
+	{
+		ServerRequestMask();
+	}
+}
+
+void ABarrioCharacter::PressSurrenderKey()
+{
+	if (!IsDead())
+	{
+		ServerPressSurrenderKey();
+	}
+}
+
+bool ABarrioCharacter::ServerRequestMask_Validate()
+{
+	return true;
+}
+
+void ABarrioCharacter::ServerRequestMask_Implementation()
+{
+	// El GameMode valida (vecino, fuera de zona segura) y controla los 2 s de la animación.
+	if (UBarrioGameEvents* Events = UBarrioGameEvents::Get(this))
+	{
+		Events->OnMaskRequested.Broadcast(GetController());
+	}
+}
+
+bool ABarrioCharacter::ServerPressSurrenderKey_Validate()
+{
+	return true;
+}
+
+void ABarrioCharacter::ServerPressSurrenderKey_Implementation()
+{
+	const ABarrioPlayerState* State = GetBarrioPlayerState();
+	UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
+	if (!State || !Events || IsDead())
+	{
+		return;
+	}
+
+	if (State->IsCriminal())
+	{
+		Events->OnSurrenderToggled.Broadcast(GetController());
+	}
+	else if (State->IsPolice())
+	{
+		Events->OnSurrenderOrder.Broadcast(GetController());
+	}
+}
+
 // ---------------------------------------------------------------------------------------------
 // Daño y muerte
 // ---------------------------------------------------------------------------------------------
@@ -280,6 +341,15 @@ void ABarrioCharacter::RequestReload()
 float ABarrioCharacter::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (!HasAuthority() || IsDead())
+	{
+		return 0.f;
+	}
+
+	// Regla central de daño: zona segura, protección de reaparición, vecinos sin armas,
+	// la policía solo daña ladrones.
+	UBarrioGameEvents* RulesEvents = UBarrioGameEvents::Get(this);
+	const ABarrioPlayerState* AttackerState = EventInstigator ? EventInstigator->GetPlayerState<ABarrioPlayerState>() : nullptr;
+	if (RulesEvents && !RulesEvents->CanDamage(AttackerState, GetBarrioPlayerState(), GetActorLocation(), GetWorld()->GetTimeSeconds()))
 	{
 		return 0.f;
 	}
@@ -422,7 +492,7 @@ void ABarrioCharacter::ServerInteract_Implementation(AActor* Target)
 }
 
 // ---------------------------------------------------------------------------------------------
-// Arresto (este personaje como objetivo)
+// Captura (este personaje como objetivo)
 // ---------------------------------------------------------------------------------------------
 
 bool ABarrioCharacter::CanInteract_Implementation(const AActor* InstigatorActor) const
@@ -430,20 +500,20 @@ bool ABarrioCharacter::CanInteract_Implementation(const AActor* InstigatorActor)
 	const APawn* OtherPawn = Cast<APawn>(InstigatorActor);
 	const ABarrioPlayerState* OtherState = OtherPawn ? OtherPawn->GetPlayerState<ABarrioPlayerState>() : nullptr;
 	const ABarrioPlayerState* MyState = GetBarrioPlayerState();
+	if (!OtherState || !MyState || !OtherState->IsPolice() || !MyState->IsCriminal() || MyState->IsJailed() || IsDead())
+	{
+		return false;
+	}
 
-	return OtherState && MyState
-		&& OtherState->IsPolice()
-		&& !MyState->IsPolice()
-		&& MyState->IsWanted()
-		&& !MyState->IsJailed()
-		&& !IsDead();
+	// Se puede esposar a un ladrón rendido o reducido (poca vida).
+	const bool bSubdued = Health && Health->GetHealth() <= Health->GetMaxHealth() * SubduedHealthFraction;
+	return MyState->IsSurrendered() || bSubdued;
 }
 
 FText ABarrioCharacter::GetInteractionText_Implementation(const AActor* InstigatorActor) const
 {
 	const ABarrioPlayerState* MyState = GetBarrioPlayerState();
-	const int32 Level = MyState ? MyState->GetWantedLevel() : 0;
-	return FText::Format(INVTEXT("Arrestar (buscado nivel {0})"), FText::AsNumber(Level));
+	return (MyState && MyState->IsSurrendered()) ? INVTEXT("Esposar (se rindió)") : INVTEXT("Esposar (reducido)");
 }
 
 void ABarrioCharacter::Interact_Implementation(AActor* InstigatorActor)
@@ -452,6 +522,6 @@ void ABarrioCharacter::Interact_Implementation(AActor* InstigatorActor)
 	UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
 	if (PolicePawn && Events && HasAuthority())
 	{
-		Events->OnArrestRequested.Broadcast(PolicePawn->GetController(), GetController());
+		Events->OnCuffRequested.Broadcast(PolicePawn->GetController(), GetController());
 	}
 }
