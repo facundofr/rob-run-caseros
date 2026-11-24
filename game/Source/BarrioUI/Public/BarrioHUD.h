@@ -4,9 +4,11 @@
 #include "GameFramework/HUD.h"
 #include "BarrioHUD.generated.h"
 
+class SWidget;
+
 /**
- * HUD mínimo de la Fase 1, dibujado sin assets: mira, aviso de interacción y una línea de estado
- * (rol de red, velocidad y estado de movimiento) que sirve para las pruebas de la Fase 2.
+ * HUD dibujado sin assets: mira, aviso de interacción, panel del jugador, alarmas y marcas.
+ * Al abrir el juego sin estar conectado a un servidor muestra la pantalla de login.
  * Se reemplaza por widgets de UMG cuando el diseñador arme la interfaz.
  */
 UCLASS()
@@ -16,4 +18,14 @@ class BARRIOUI_API ABarrioHUD : public AHUD
 
 public:
 	virtual void DrawHUD() override;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+	bool ShouldShowLogin() const;
+	void ShowLogin();
+
+	TSharedPtr<SWidget> LoginOverlay;
 };

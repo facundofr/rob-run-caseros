@@ -52,6 +52,14 @@ void ABarrioPlayerState::AddCash(int32 Amount)
 	}
 }
 
+void ABarrioPlayerState::SetCash(int32 NewCash)
+{
+	if (HasAuthority())
+	{
+		Cash = FMath::Max(0, NewCash);
+	}
+}
+
 void ABarrioPlayerState::AddCarriedLoot(int32 Amount)
 {
 	if (HasAuthority())

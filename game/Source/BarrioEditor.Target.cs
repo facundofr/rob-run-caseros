@@ -7,6 +7,6 @@ public class BarrioEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
-		ExtraModuleNames.AddRange(new string[] { "Barrio", "BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioUI" });
+		ExtraModuleNames.AddRange(new string[] { "Barrio", "BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioOnline", "BarrioUI" });
 	}
 }

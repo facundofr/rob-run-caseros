@@ -37,6 +37,8 @@ public:
 	void AddWanted(int32 Amount, float ServerTime);
 	void SetWantedLevel(int32 NewLevel);
 	void AddCash(int32 Amount);
+	/** Saldo confirmado por el backend. */
+	void SetCash(int32 NewCash);
 	void AddCarriedLoot(int32 Amount);
 	int32 TakeCarriedLoot();
 	void SetJailed(bool bNewJailed, float ReleaseTime);
@@ -45,6 +47,10 @@ public:
 
 	/** Momento del último delito, en tiempo del servidor. Solo existe en el servidor. */
 	float LastCrimeTime = 0.f;
+
+	/** Cuenta y personaje en el backend (0 = sin backend). Solo existen en el servidor. */
+	int32 AccountId = 0;
+	int32 CharacterId = 0;
 
 private:
 	UPROPERTY(Replicated)

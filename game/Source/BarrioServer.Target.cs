@@ -9,6 +9,6 @@ public class BarrioServerTarget : TargetRules
 		Type = TargetType.Server;
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
-		ExtraModuleNames.AddRange(new string[] { "Barrio", "BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioUI" });
+		ExtraModuleNames.AddRange(new string[] { "Barrio", "BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioOnline", "BarrioUI" });
 	}
 }

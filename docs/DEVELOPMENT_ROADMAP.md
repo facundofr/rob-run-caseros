@@ -12,10 +12,10 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com
 | 1 | MVP 0 en Unreal: personaje, barrio gris, robos, alarmas, policía, cárcel, pistola | **Código escrito, sin compilar** | `game/` |
 | 2 | Backend: cuentas, economía con ledger, servidores | Hecho y probado (32 pruebas) | `backend/` |
 | 2b | Login con usuario y contraseña | Hecho y probado | `backend/` |
-| 3 | Backend en el VPS con HTTPS | Scripts listos, falta ejecutarlos | `infra/vps/` |
+| 3 | Backend en el VPS con HTTPS (`caseros-api.facundofr.com`) | Scripts listos, falta ejecutarlos | `infra/vps/` |
 | 4 | Compilar y probar el MVP 0 en la PC de desarrollo | **Pendiente: bloquea las etapas de Unreal** | PC de desarrollo |
 | 5 | Servidor de juego en el VPS | Guía lista, depende de 4 | `infra/vps/` |
-| 6 | Unreal conectado al backend: pantalla de login, verificación de sesión, dinero persistente | Pendiente | `game/` |
+| 6 | Unreal conectado al backend: pantalla de login, verificación de sesión, dinero persistente | **Código escrito, sin compilar** | `game/Source/BarrioOnline`, `BarrioUI` |
 | 7 | MVP completo: bots policía, inventario, moto, compensación de latencia | Pendiente | `game/` |
 | 8 | Arte del barrio (kit modular de Caseros) | Pendiente, en paralelo | Diseñador |
 | 9 | Alpha cerrada con 16 jugadores | Pendiente | VPS |
@@ -23,8 +23,8 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com
 ## Detalle de lo que falta
 
 ### 3. Backend en el VPS
-1. Crear los registros DNS `api` y `juego` apuntando a la IP del VPS.
-2. Revisar que no haya otro servidor web en los puertos 80 y 443.
+1. Crear los registros DNS `caseros-api` y `caseros` apuntando a la IP del VPS (`api` ya está en uso).
+2. Ver qué servidor web usa el VPS (`systemctl is-active nginx caddy apache2`). El script convive con Nginx y Caddy sin tocar otros sitios.
 3. Ejecutar `infra/vps/setup-vps.sh` (ver `infra/vps/README.md`).
 4. Comprobar `https://caseros-api.facundofr.com/health`.
 
@@ -44,16 +44,17 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com
 
 **Criterio de cierre:** 1 hora de juego con varios jugadores sin caídas.
 
-### 6. Unreal conectado al backend
-Nuevo módulo `BarrioOnline`:
-1. **Pantalla de login y registro** (usuario, contraseña, email opcional) con los mensajes de error que devuelve el backend.
-2. El cliente guarda el token de sesión y se conecta pasándolo en la URL (`caseros.facundofr.com:7777?token=...`).
-3. El servidor de juego verifica el token con `/v1/sessions/verify` antes de aceptar al jugador; si falla, lo rechaza.
-4. El servidor de juego se registra al arrancar y envía heartbeat cada 15 s.
-5. Vender al reducidor y cobrar recompensas pasa por `/v1/economy/transactions`: el dinero se conserva entre sesiones.
-6. Selección de servidor: el cliente pide `/v1/servers` y entra al recomendado.
+### 6. Unreal conectado al backend (código escrito)
+Módulo `BarrioOnline` y pantalla `SBarrioLoginScreen`:
+- [x] **Pantalla de login y registro** (usuario, contraseña, email opcional) con los mensajes de error del backend. Aparece al abrir el juego empaquetado; en el editor no, para probar rápido (se activa con *Show Login In Editor* en Project Settings → Game → Barrio Online).
+- [x] El cliente se conecta pasando el token en la URL (`caseros.facundofr.com:7777?token=...`).
+- [x] El servidor de juego verifica el token antes de crear el personaje; si falla, o si la cuenta ya está conectada, lo expulsa con el motivo.
+- [x] El servidor de juego se registra al arrancar, envía heartbeat cada 15 s y se vuelve a registrar si el backend lo pierde.
+- [x] Vender al reducidor y la recompensa por captura pasan por el backend. Si la venta falla, el botín vuelve al jugador. Si la red se corta, reintenta con la misma clave, sin pagar dos veces.
+- [x] El cliente entra al servidor recomendado por `/v1/servers`, o al de la configuración.
+- Sin la variable `BARRIO_SERVER_KEY` (editor, pruebas locales), el juego funciona como el MVP 0: sin cuentas y sin guardar.
 
-**Criterio de cierre:** un jugador vende botín, sale, vuelve a entrar y conserva el dinero.
+**Pendiente de verificar al compilar.** **Criterio de cierre:** un jugador vende botín, sale, vuelve a entrar y conserva el dinero.
 
 ### 7. MVP completo
 - Bots policía que cubren los cupos vacíos.

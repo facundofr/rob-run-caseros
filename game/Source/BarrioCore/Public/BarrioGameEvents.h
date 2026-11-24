@@ -25,12 +25,15 @@ public:
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FKillEvent, AController* /*Victim*/, AController* /*Killer*/);
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FArrestEvent, AController* /*Police*/, AController* /*Suspect*/);
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FRoleEvent, AController* /*Player*/, EBarrioRole /*RequestedRole*/);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FSellEvent, AController* /*Seller*/);
 
 	FAlarmEvent OnAlarm;
 	FDamageEvent OnDamage;
 	FKillEvent OnKill;
 	FArrestEvent OnArrestRequested;
 	FRoleEvent OnRoleRequested;
+	/** Un jugador pidió vender su botín al reducidor (ya validado: no está buscado y lleva botín). */
+	FSellEvent OnSellLootRequested;
 
 	static UBarrioGameEvents* Get(const UObject* WorldContext);
 };

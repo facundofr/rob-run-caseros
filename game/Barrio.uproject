@@ -29,6 +29,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "BarrioOnline",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "BarrioUI",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

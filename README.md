@@ -34,7 +34,8 @@ Sin vehículos, sin backend (nada se guarda al salir) y sin bots policía.
     /BarrioCombat     Vida y pistola (disparos validados por el servidor)
     /BarrioCharacters Personaje, movimiento (sprint predicho en red), cámara, controles, arresto
     /BarrioWorld      Barrio en gris, puntos de robo, reducidor, comisaría, celda
-    /BarrioUI         HUD. Puede leer de los otros módulos; ninguno depende de él
+    /BarrioOnline     Conexión con el backend: login, sesiones, dinero, registro del servidor
+    /BarrioUI         HUD y pantalla de login. Puede leer de los otros módulos; ninguno depende de él
 /backend              API: cuentas, dinero (ledger), servidores de juego. Ver backend/README.md
 /infra/vps            Despliegue del servidor dedicado en el VPS
 /docs                 Documentación
@@ -150,6 +151,19 @@ Jugador A = ladrón, Jugador B = policía, Jugador C = civil.
 ### MVP 0 en el VPS
 
 Seguir [infra/vps/README.md](infra/vps/README.md) y repetir la prueba del loop completo con jugadores conectados desde casas distintas.
+
+### Cuentas y dinero guardado (etapa 6, con backend y servidor en el VPS)
+
+Con un cliente empaquetado (Development) que abre el juego sin argumentos:
+
+- [ ] Aparece la pantalla de login. Con usuario o contraseña incorrectos muestra "Usuario o contraseña incorrectos".
+- [ ] "Crear cuenta" con una contraseña corta muestra el motivo ("al menos 10 caracteres").
+- [ ] Al crear la cuenta, entra solo a `caseros.facundofr.com` y el panel muestra Dinero: $0.
+- [ ] Robar, perder a la policía y vender: el dinero sube. Salir del juego, volver a entrar con la misma cuenta: el dinero sigue ahí.
+- [ ] Abrir un segundo cliente con la misma cuenta: el segundo es expulsado con "Esa cuenta ya está conectada".
+- [ ] Conectarse a mano sin login (`open caseros.facundofr.com:7777` desde la consola): el servidor lo rechaza.
+
+Para ver la pantalla de login en el editor: **Project Settings → Game → Barrio Online → Show Login In Editor**, y Play en modo **Standalone Game**.
 
 Si algo falla, anotar el paso de la lista, qué se ve y el error del **Output Log**.
 

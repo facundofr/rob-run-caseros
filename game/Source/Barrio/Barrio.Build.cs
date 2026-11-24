@@ -9,7 +9,7 @@ public class Barrio : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine",
-			"BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioUI"
+			"BarrioCore", "BarrioCombat", "BarrioCharacters", "BarrioWorld", "BarrioOnline", "BarrioUI"
 		});
 	}
 }

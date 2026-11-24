@@ -87,15 +87,16 @@ FText AFenceStation::GetInteractionText_Implementation(const AActor* InstigatorA
 
 void AFenceStation::Interact_Implementation(AActor* InstigatorActor)
 {
-	ABarrioPlayerState* State = GetState(InstigatorActor);
-	if (!HasAuthority() || !State || State->IsWanted())
+	const APawn* Pawn = Cast<APawn>(InstigatorActor);
+	const ABarrioPlayerState* State = GetState(InstigatorActor);
+	UBarrioGameEvents* Events = UBarrioGameEvents::Get(this);
+	if (!HasAuthority() || !Pawn || !State || !Events || State->IsWanted() || State->GetCarriedLoot() <= 0)
 	{
 		return;
 	}
 
-	const int32 Sold = State->TakeCarriedLoot();
-	State->AddCash(Sold);
-	UE_LOG(LogBarrio, Log, TEXT("%s vendió botín por $%d."), *GetNameSafe(InstigatorActor), Sold);
+	// La venta la resuelve el GameMode: con backend, el dinero se guarda en la cuenta.
+	Events->OnSellLootRequested.Broadcast(Pawn->GetController());
 }
 
 // ---------------------------------------------------------------------------------------------

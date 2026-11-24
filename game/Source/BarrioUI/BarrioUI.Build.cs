@@ -6,6 +6,6 @@ public class BarrioUI : ModuleRules
 	public BarrioUI(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "BarrioCore", "BarrioCharacters", "BarrioCombat" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "BarrioCore", "BarrioCharacters", "BarrioCombat", "BarrioOnline", "Slate", "SlateCore" });
 	}
 }

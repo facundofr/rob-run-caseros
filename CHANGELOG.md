@@ -1,5 +1,21 @@
 # Changelog
 
+## [Sin publicar] Etapa 6: Unreal conectado al backend
+
+Código escrito, pendiente de compilar.
+
+### Agregado
+- Módulo `BarrioOnline`: cliente HTTP con JSON, `UBarrioAuthSubsystem` (login, registro, servidor recomendado, conexión con token) y `UBarrioServerBackend` (registro de la instancia, heartbeat, verificación de sesión, movimientos de dinero con reintento idempotente).
+- `SBarrioLoginScreen`: pantalla de login y registro en Slate, sin assets.
+- GameMode: con backend activo nadie entra sin sesión válida; el personaje aparece recién cuando el backend confirma la sesión. Una cuenta, una conexión.
+- Venta al reducidor y recompensa por captura guardadas en el backend; si la venta falla, el botín vuelve al jugador.
+- Project Settings → Game → Barrio Online (URL del backend, servidor por defecto, login en el editor).
+
+### Cambiado
+- El reducidor ya no paga directamente: emite `OnSellLootRequested` y el GameMode resuelve la venta.
+- Subdominios: `caseros-api.facundofr.com` (API) y `caseros.facundofr.com` (juego).
+- `setup-vps.sh` convive con servicios existentes: Node propio, puerto 3100, Nginx o Caddy sin reemplazar otros sitios, sin activar el firewall.
+
 ## [Sin publicar] Login con usuario y contraseña, y despliegue en el VPS
 
 ### Agregado

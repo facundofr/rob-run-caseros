@@ -1,15 +1,20 @@
 #include "BarrioHUD.h"
 
+#include "BarrioAuthSubsystem.h"
 #include "BarrioCharacter.h"
 #include "BarrioHealthComponent.h"
+#include "BarrioOnlineSettings.h"
 #include "BarrioPlayerController.h"
 #include "BarrioPlayerState.h"
 #include "BarrioWeaponComponent.h"
+#include "SBarrioLoginScreen.h"
 
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "Engine/GameInstance.h"
+#include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameStateBase.h"
@@ -42,13 +47,74 @@ namespace
 	}
 }
 
+// ---------------------------------------------------------------------------------------------
+// Pantalla de login
+// ---------------------------------------------------------------------------------------------
+
+bool ABarrioHUD::ShouldShowLogin() const
+{
+	const UBarrioOnlineSettings* Settings = GetDefault<UBarrioOnlineSettings>();
+	const UGameInstance* GameInstance = GetGameInstance();
+	const UBarrioAuthSubsystem* Auth = GameInstance ? GameInstance->GetSubsystem<UBarrioAuthSubsystem>() : nullptr;
+
+	// Solo en el juego abierto sin conexión (no en una partida en red) y sin sesión iniciada.
+	return Settings->bRequireLogin
+		&& (!GIsEditor || Settings->bShowLoginInEditor)
+		&& GetNetMode() == NM_Standalone
+		&& PlayerOwner && PlayerOwner->IsLocalController()
+		&& Auth && !Auth->IsLoggedIn();
+}
+
+void ABarrioHUD::BeginPlay()
+{
+	Super::BeginPlay();
+	if (ShouldShowLogin())
+	{
+		ShowLogin();
+	}
+}
+
+void ABarrioHUD::ShowLogin()
+{
+	UGameViewportClient* Viewport = GEngine ? GEngine->GameViewport : nullptr;
+	UBarrioAuthSubsystem* Auth = GetGameInstance()->GetSubsystem<UBarrioAuthSubsystem>();
+	if (!Viewport || !Auth)
+	{
+		return;
+	}
+
+	// El viewport guarda una referencia fuerte a la pantalla hasta que se quita en EndPlay.
+	TSharedRef<SBarrioLoginScreen> Screen = SNew(SBarrioLoginScreen).Auth(Auth);
+	LoginOverlay = Screen;
+	Viewport->AddViewportWidgetContent(Screen, 100);
+
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(Screen->GetInitialFocus());
+	PlayerOwner->SetInputMode(InputMode);
+	PlayerOwner->SetShowMouseCursor(true);
+}
+
+void ABarrioHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (LoginOverlay.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(LoginOverlay.ToSharedRef());
+	}
+	LoginOverlay.Reset();
+	Super::EndPlay(EndPlayReason);
+}
+
+// ---------------------------------------------------------------------------------------------
+// HUD de juego
+// ---------------------------------------------------------------------------------------------
+
 void ABarrioHUD::DrawHUD()
 {
 	Super::DrawHUD();
 
-	if (!Canvas || !PlayerOwner)
+	if (!Canvas || !PlayerOwner || LoginOverlay.IsValid())
 	{
-		return;
+		return; // con la pantalla de login abierta no se dibuja el HUD de juego
 	}
 
 	UFont* Font = GEngine ? GEngine->GetMediumFont() : nullptr;

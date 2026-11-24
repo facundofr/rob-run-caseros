@@ -33,6 +33,13 @@ public:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual bool ShouldSpawnAtStartSpot_Implementation(AController* Player) override;
 
+	// Cuentas: con backend activo, nadie entra sin una sesión válida.
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+	virtual APlayerController* Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options,
+		const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Roles") int32 MaxPolice = 4;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Roles") int32 PlayersPerPolice = 3;
 	UPROPERTY(EditDefaultsOnly, Category = "Barrio|Rules") float RespawnDelay = 5.f;
@@ -55,7 +62,17 @@ private:
 	void HandleKill(AController* Victim, AController* Killer);
 	void HandleArrest(AController* Police, AController* Suspect);
 	void HandleRoleRequest(AController* Player, EBarrioRole RequestedRole);
+	void HandleSellLoot(AController* Seller);
 	void TickRules();
+
+	/** Suma dinero: con backend, lo guarda en la cuenta y usa el saldo confirmado; sin backend, solo en memoria. */
+	void GrantCash(ABarrioPlayerState* State, int32 Amount, const FString& Reason, const FString& SuccessMessage);
+	class UBarrioServerBackend* GetBackend() const;
+	bool IsBackendEnabled() const;
+	void OnSessionVerified(TWeakObjectPtr<APlayerController> Player, bool bSuccess, const struct FBarrioProfile& Profile, const FString& Error);
+
+	TMap<TWeakObjectPtr<APlayerController>, FString> PendingTokens;
+	TSet<TWeakObjectPtr<APlayerController>> VerifiedPlayers;
 
 	void Jail(ABarrioPlayerState* Suspect);
 	void RewardPolice(ABarrioPlayerState* Police, int32 WantedLevel);
