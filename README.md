@@ -2,6 +2,7 @@
 
 Juego multijugador de mundo abierto ambientado en Caseros, Zona Oeste del conurbano bonaerense. Unreal Engine 5, servidor dedicado autoritativo, 16 jugadores por servidor.
 
+- **Pasos para levantar todo (y guía para asistentes de IA): [AGENTS.md](AGENTS.md)**
 - Plan de acción y estado: [docs/DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md)
 - Arquitectura y decisiones: [docs/FASE0_INFORME.md](docs/FASE0_INFORME.md)
 - Backend (cuentas, dinero, servidores): [backend/README.md](backend/README.md)
