@@ -1,7 +1,8 @@
-# HTTPS automático (Let's Encrypt) delante del backend, que solo escucha en localhost.
-api.facundofr.com {
+# Sitio de Barrio para Caddy. setup-vps.sh reemplaza __API_DOMAIN__ y __BACKEND_PORT__
+# y lo instala en /etc/caddy/barrio.caddy, importado desde el Caddyfile principal.
+__API_DOMAIN__ {
 	encode gzip
-	reverse_proxy 127.0.0.1:3000
+	reverse_proxy 127.0.0.1:__BACKEND_PORT__
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"

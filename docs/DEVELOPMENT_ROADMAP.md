@@ -2,7 +2,7 @@
 
 Actualizado: 24 de noviembre de 2026.
 
-Objetivo: un MVP jugable por internet con 16 jugadores en `juego.facundofr.com`, con cuentas de usuario y contraseña, dinero que se conserva entre sesiones y el loop robo → alarma → persecución → escape o arresto.
+Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com`, con cuentas de usuario y contraseña, dinero que se conserva entre sesiones y el loop robo → alarma → persecución → escape o arresto.
 
 ## Estado
 
@@ -26,9 +26,9 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `juego.facundofr.com`,
 1. Crear los registros DNS `api` y `juego` apuntando a la IP del VPS.
 2. Revisar que no haya otro servidor web en los puertos 80 y 443.
 3. Ejecutar `infra/vps/setup-vps.sh` (ver `infra/vps/README.md`).
-4. Comprobar `https://api.facundofr.com/health`.
+4. Comprobar `https://caseros-api.facundofr.com/health`.
 
-**Criterio de cierre:** desde cualquier PC se puede registrar una cuenta y hacer login contra `https://api.facundofr.com`.
+**Criterio de cierre:** desde cualquier PC se puede registrar una cuenta y hacer login contra `https://caseros-api.facundofr.com`.
 
 ### 4. Compilar y probar el MVP 0
 1. Instalar Unreal 5.x y Visual Studio 2022 en la PC de desarrollo (Ryzen 7 5700X, 32 GB, RTX 5050).
@@ -40,14 +40,14 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `juego.facundofr.com`,
 ### 5. Servidor de juego en el VPS
 1. Compilar el motor desde el código fuente.
 2. Empaquetar `BarrioServer` para Linux y subirlo.
-3. Repetir el loop completo con jugadores desde casas distintas, conectados a `juego.facundofr.com:7777`.
+3. Repetir el loop completo con jugadores desde casas distintas, conectados a `caseros.facundofr.com:7777`.
 
 **Criterio de cierre:** 1 hora de juego con varios jugadores sin caídas.
 
 ### 6. Unreal conectado al backend
 Nuevo módulo `BarrioOnline`:
 1. **Pantalla de login y registro** (usuario, contraseña, email opcional) con los mensajes de error que devuelve el backend.
-2. El cliente guarda el token de sesión y se conecta pasándolo en la URL (`juego.facundofr.com:7777?token=...`).
+2. El cliente guarda el token de sesión y se conecta pasándolo en la URL (`caseros.facundofr.com:7777?token=...`).
 3. El servidor de juego verifica el token con `/v1/sessions/verify` antes de aceptar al jugador; si falla, lo rechaza.
 4. El servidor de juego se registra al arrancar y envía heartbeat cada 15 s.
 5. Vender al reducidor y cobrar recompensas pasa por `/v1/economy/transactions`: el dinero se conserva entre sesiones.

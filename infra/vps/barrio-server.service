@@ -1,12 +1,15 @@
 [Unit]
-Description=Barrio - servidor dedicado (MVP 0)
-After=network-online.target
+Description=Barrio - servidor dedicado de juego
+After=network-online.target barrio-backend.service
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=barrio
 WorkingDirectory=/opt/barrio/server
+# Dirección del backend y clave de servidor (la genera setup-vps.sh). Sin este archivo,
+# el servidor de juego corre sin cuentas: cualquiera puede entrar y nada se guarda.
+EnvironmentFile=-/etc/barrio/gameserver.env
 ExecStart=/opt/barrio/server/BarrioServer.sh -log -port=7777
 Restart=on-failure
 RestartSec=10

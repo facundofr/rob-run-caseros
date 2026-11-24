@@ -10,7 +10,7 @@ User=barrio
 Group=barrio
 WorkingDirectory=/opt/barrio/repo/backend
 EnvironmentFile=/etc/barrio/backend.env
-ExecStart=/usr/bin/node dist/server.js
+ExecStart=/opt/barrio/node/bin/node dist/server.js
 Restart=always
 RestartSec=5
 

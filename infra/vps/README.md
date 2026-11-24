@@ -4,11 +4,11 @@ VPS Hostinger KVM 2 en Brasil (latencia baja desde Buenos Aires). En el mismo VP
 
 | Servicio | Dirección | Detalle |
 | --- | --- | --- |
-| Backend (API) | `https://api.facundofr.com` | Node.js detrás de Caddy, con HTTPS automático. Solo escucha en localhost |
+| Backend (API) | `https://caseros-api.facundofr.com` | Node.js detrás de Nginx o Caddy, con HTTPS automático. Solo escucha en `127.0.0.1:3100` |
 | Base de datos | localhost:5432 | PostgreSQL. No se expone a internet |
-| Servidor de juego | `juego.facundofr.com:7777` (UDP) | Unreal, servidor dedicado de 16 jugadores |
+| Servidor de juego | `caseros.facundofr.com:7777` (UDP) | Unreal, servidor dedicado de 16 jugadores |
 
-La página principal `facundofr.com` no se toca: todo va en subdominios.
+La página principal `facundofr.com` y los demás servicios del VPS (por ejemplo, lo que ya responde en `api.facundofr.com`) no se tocan: todo va en subdominios propios.
 
 ## 1. DNS (panel donde está el dominio)
 
@@ -16,10 +16,12 @@ Crear dos registros **A** apuntando a la IP pública del VPS:
 
 | Nombre | Tipo | Valor |
 | --- | --- | --- |
-| `api` | A | IP del VPS |
-| `juego` | A | IP del VPS |
+| `caseros-api` | A | IP del VPS |
+| `caseros` | A | IP del VPS |
 
-Comprobar desde la PC: `nslookup api.facundofr.com` tiene que devolver la IP del VPS. Puede tardar unos minutos.
+Si alguno de estos nombres también estuviera ocupado, se pueden usar otros: el script acepta `API_DOMAIN=... GAME_DOMAIN=...`.
+
+Comprobar desde la PC: `nslookup caseros-api.facundofr.com` tiene que devolver la IP del VPS. Puede tardar unos minutos.
 
 ## 2. Preparar el VPS y levantar el backend (una sola vez)
 
@@ -30,23 +32,24 @@ git clone https://github.com/facundofr/rob-run-caseros.git /opt/barrio/repo
 bash /opt/barrio/repo/infra/vps/setup-vps.sh
 ```
 
-El script [setup-vps.sh](setup-vps.sh):
-- Instala Node.js 24, PostgreSQL y Caddy.
-- Crea el usuario `barrio` y la base `barrio` con una contraseña aleatoria.
-- Genera los secretos (`JWT_SECRET`, `SERVER_API_KEY`) en `/etc/barrio/backend.env`, legible solo por root y el usuario `barrio`.
-- Compila el backend y lo deja como servicio (`barrio-backend`), que se reinicia solo si se cae.
-- Configura HTTPS para `api.facundofr.com`.
-- Abre en el firewall solo SSH, 80, 443 y 7777/UDP.
+El script [setup-vps.sh](setup-vps.sh) está pensado para **convivir con lo que ya corre en el VPS**:
+- Instala su propio Node.js 24 en `/opt/barrio/node`. No cambia el Node del sistema ni el de otras aplicaciones.
+- Usa PostgreSQL (lo instala si falta) con una base y un usuario propios, `barrio`, con contraseña aleatoria.
+- El backend escucha en `127.0.0.1:3100`. Si ese puerto está ocupado, se detiene y avisa (`BACKEND_PORT=otro` para cambiarlo).
+- HTTPS: si el VPS ya usa **Nginx**, agrega un sitio nuevo y saca el certificado con certbot. Si usa **Caddy**, agrega un archivo importado y guarda copia del Caddyfile. Si no hay ninguno, instala Caddy. **Nunca reemplaza la configuración de otros sitios.** Con Apache se detiene y explica qué agregar a mano.
+- Firewall: si `ufw` está activo, agrega 80, 443 y 7777/UDP. Si está apagado, no lo activa, para no cortar otros servicios.
+- Genera los secretos en `/etc/barrio/backend.env` y la configuración del servidor de juego en `/etc/barrio/gameserver.env`, legibles solo por root y el usuario `barrio`.
+- Deja el backend como servicio (`barrio-backend`), que se reinicia solo si se cae.
 
 Se puede volver a ejecutar sin perder datos ni secretos.
 
-**Antes de ejecutarlo**, revisar que en el VPS no haya otro servidor web (Apache o Nginx) ocupando los puertos 80 y 443: `ss -tlnp | grep -E ':80|:443'`. Si lo hay, avisar antes de seguir.
+**Antes de ejecutarlo**, conviene ver qué servidor web usa el VPS: `systemctl is-active nginx caddy apache2`.
 
 **Comprobar desde la PC:**
 
 ```bash
-curl https://api.facundofr.com/health          # {"status":"ok"}
-curl https://api.facundofr.com/v1/servers      # {"servers":[],"recommended":null}
+curl https://caseros-api.facundofr.com/health          # {"status":"ok"}
+curl https://caseros-api.facundofr.com/v1/servers      # {"servers":[],"recommended":null}
 ```
 
 ## 3. Actualizar el backend
@@ -81,7 +84,7 @@ En el editor: **Platforms → Linux → Build Target: BarrioServer**, configurac
 Desde la PC (PowerShell):
 
 ```powershell
-scp -r .\Build\LinuxServer\* root@juego.facundofr.com:/opt/barrio/server/
+scp -r .\Build\LinuxServer\* root@caseros.facundofr.com:/opt/barrio/server/
 ```
 
 En el VPS:
@@ -95,8 +98,8 @@ journalctl -u barrio-server -f     # tiene que decir que escucha en 7777 y carg�
 
 ### 4.4 Conectarse
 
-Con un cliente empaquetado en **Development**: `Barrio.exe juego.facundofr.com:7777`.
-O desde el editor: **Play → Standalone Game**, consola (`º` o `~`) y `open juego.facundofr.com:7777`.
+Con un cliente empaquetado en **Development**: `Barrio.exe caseros.facundofr.com:7777`.
+O desde el editor: **Play → Standalone Game**, consola (`º` o `~`) y `open caseros.facundofr.com:7777`.
 
 Hasta que esté la integración con el backend (etapa 4 del plan), el servidor de juego no pide login: cualquiera con la dirección puede entrar. Compartirla solo con los testers.
 

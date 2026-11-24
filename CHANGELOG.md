@@ -8,7 +8,7 @@
 - Protección contra fuerza bruta: límite de pedidos por IP y bloqueo de 15 minutos tras 5 intentos fallidos. El error no revela si el usuario existe.
 - Mensajes de validación en español, listos para mostrar en la pantalla de login.
 - `TRUST_PROXY` para tomar la IP real del jugador detrás de Caddy.
-- `infra/vps/setup-vps.sh` y `deploy-backend.sh`: instalación y actualización en el VPS (`api.facundofr.com` con HTTPS, PostgreSQL, firewall, servicios).
+- `infra/vps/setup-vps.sh` y `deploy-backend.sh`: instalación y actualización en el VPS (`caseros-api.facundofr.com` con HTTPS, PostgreSQL, firewall, servicios).
 - `docs/DEVELOPMENT_ROADMAP.md`: plan de acción hasta el MVP.
 - 10 pruebas nuevas (32 en total).
 

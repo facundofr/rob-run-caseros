@@ -256,7 +256,7 @@ Con estas decisiones aprobadas arranca la Fase 1.
 - [ ] Motor: Unreal Engine 5, última 5.x estable, congelada durante el MVP
 - [ ] Backend: Node.js + TypeScript + PostgreSQL
 - [x] Login con usuario y contraseña en el MVP; Steam como vinculación posterior
-- [x] Despliegue en el VPS propio: `api.facundofr.com` (backend) y `juego.facundofr.com` (servidor de juego). Plan detallado en [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)
+- [x] Despliegue en el VPS propio: `caseros-api.facundofr.com` (backend) y `caseros.facundofr.com` (servidor de juego). Plan detallado en [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)
 - [ ] Servidores persistentes de 16 jugadores (hasta 4 policías), con bots policía de relleno
 - [ ] Orden de fases: núcleo del juego (casas, alarmas, policía) antes del backend
 - [ ] Alcance del MVP tal como figura arriba; clanes, territorios, bases y mercado después
