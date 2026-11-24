@@ -1,3 +1,4 @@
+import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { z, ZodError } from "zod";
 import { isValidServerKey, signSessionToken, verifySessionToken, type SteamVerifier } from "./auth.js";
@@ -5,6 +6,7 @@ import type { Config } from "./config.js";
 import type { Db } from "./db.js";
 import { AppError, notFound } from "./errors.js";
 import { findOrCreatePlayer, getProfileByAccountId, type PlayerProfile } from "./services/accounts.js";
+import { loginWithPassword, registerWithPassword } from "./services/credentials.js";
 import { applyTransaction } from "./services/economy.js";
 import { heartbeat, listServers, registerServer } from "./services/servers.js";
 
@@ -18,6 +20,23 @@ export interface AppDependencies {
 
 const steamLoginBody = z.object({ ticket: z.string().regex(/^[0-9a-fA-F]+$/).min(16).max(4096) });
 const devLoginBody = z.object({ name: z.string().trim().min(2).max(24).regex(/^[\p{L}\p{N}_\- ]+$/u) });
+const username = z
+  .string()
+  .trim()
+  .min(3, "El usuario debe tener entre 3 y 20 caracteres")
+  .max(20, "El usuario debe tener entre 3 y 20 caracteres")
+  .regex(/^[a-zA-Z0-9_.-]+$/, "El usuario solo puede tener letras, números, punto, guion y guion bajo");
+const registerBody = z
+  .object({
+    username,
+    password: z.string().min(10, "La contraseña debe tener al menos 10 caracteres").max(128),
+    email: z.string().trim().email("Email inválido").max(254).optional(),
+  })
+  .refine((body) => !body.password.toLowerCase().includes(body.username.toLowerCase()), {
+    message: "La contraseña no puede contener el nombre de usuario",
+    path: ["password"],
+  });
+const loginBody = z.object({ username: z.string().trim().min(1).max(254), password: z.string().min(1).max(128) });
 const verifySessionBody = z.object({ token: z.string().min(10).max(2048) });
 const registerServerBody = z.object({
   name: z.string().trim().min(1).max(64),
@@ -43,18 +62,23 @@ export function buildApp({ db, config, steam }: AppDependencies): FastifyInstanc
   const app = Fastify({
     logger: config.NODE_ENV === "test" ? false : { level: "info", redact: ["req.headers.authorization", 'req.headers["x-server-key"]'] },
     bodyLimit: 64 * 1024,
+    // Detrás de Caddy, la IP del jugador viene en X-Forwarded-For (para el límite de pedidos por IP).
+    trustProxy: config.TRUST_PROXY ? "127.0.0.1" : false,
   });
 
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError) {
-      return reply.status(400).send({ error: "invalid_request", message: "Datos inválidos.", issues: error.issues });
+      // El primer mensaje ya está escrito para mostrarlo al jugador.
+      const message = error.issues[0]?.message ?? "Datos inválidos.";
+      return reply.status(400).send({ error: "invalid_request", message, issues: error.issues });
     }
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({ error: error.code, message: error.message });
     }
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) {
-      return reply.status(status).send({ error: "bad_request", message: (error as Error).message });
+      const code = (error as { error?: unknown }).error;
+      return reply.status(status).send({ error: typeof code === "string" ? code : "bad_request", message: (error as Error).message });
     }
     request.log.error(error);
     return reply.status(500).send({ error: "internal_error", message: "Error interno." });
@@ -85,6 +109,33 @@ export function buildApp({ db, config, steam }: AppDependencies): FastifyInstanc
   });
 
   // --- Jugadores (cliente del juego) -------------------------------------------------------
+
+  const scrypt = { N: config.PASSWORD_SCRYPT_N, r: 8, p: 1 };
+  const lockout = { maxFailedAttempts: config.LOGIN_MAX_FAILED_ATTEMPTS, lockMinutes: config.LOGIN_LOCK_MINUTES };
+  const authRateLimit = { rateLimit: { max: config.AUTH_RATE_LIMIT_PER_MINUTE, timeWindow: "1 minute" } };
+
+  app.register(rateLimit, {
+    global: false,
+    errorResponseBuilder: (_request, context) => ({
+      statusCode: 429,
+      error: "rate_limited",
+      message: `Demasiados pedidos. Esperá ${Math.ceil(context.ttl / 1000)} s.`,
+    }),
+  });
+
+  app.register(async (authRoutes) => {
+    authRoutes.post("/v1/auth/register", { config: authRateLimit }, async (request) => {
+      const body = registerBody.parse(request.body);
+      const profile = await registerWithPassword(db, body, scrypt);
+      return issueSession(profile);
+    });
+
+    authRoutes.post("/v1/auth/login", { config: authRateLimit }, async (request) => {
+      const { username: name, password } = loginBody.parse(request.body);
+      const profile = await loginWithPassword(db, name, password, scrypt, lockout);
+      return issueSession(profile);
+    });
+  });
 
   app.post("/v1/auth/steam", async (request) => {
     const { ticket } = steamLoginBody.parse(request.body);

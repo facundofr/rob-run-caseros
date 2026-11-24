@@ -11,7 +11,7 @@ La visión completa del master prompt (clanes, territorios, bases, mercado, banc
 Cambios respecto del master prompt:
 
 - **Orden de fases:** casas, alarmas y policía pasan antes que el backend. Son el núcleo del juego y hay que probarlos primero.
-- **Login con Steam** en lugar de usuario y contraseña propios. Es más simple y más seguro.
+- **Login con usuario y contraseña** para el MVP, para probar sin depender de Steam; vinculación con Steam más adelante. *(Actualizado el 24/11/2026: la propuesta original era solo Steam.)*
 - **Sin anti-cheat de kernel**, como pide el prompt: la defensa es la autoridad del servidor más detección del lado del servidor.
 - **Clanes, territorios, construcción y mercado** quedan fuera del MVP. La arquitectura los contempla.
 
@@ -144,8 +144,8 @@ Cada servidor es una instancia independiente del mismo barrio, siempre abierta, 
 
 **Entrada al servidor:**
 
-1. El cliente obtiene un ticket de sesión de Steam y se lo da al backend.
-2. El backend lo valida con la API de Steam y devuelve un token de juego firmado, de vida corta.
+1. El cliente hace login con usuario y contraseña (o, más adelante, con un ticket de Steam).
+2. El backend valida las credenciales y devuelve un token de juego firmado, de vida corta.
 3. El cliente se conecta al servidor con ese token. El servidor lo verifica con el backend antes de aceptarlo.
 
 **Reconexión:** si un jugador se desconecta, su personaje queda en el mundo 60 segundos. Si vuelve en ese tiempo, lo recupera tal como estaba; si no, se guarda y se retira. Así nadie puede desconectarse para escapar de un arresto sin consecuencias.
@@ -204,7 +204,7 @@ El MVP responde una sola pregunta: ¿es divertido robar una casa, que suene la a
 - Inventario por ranuras con apilado, soltar y recoger.
 - 1 auto.
 - Tienda para vender el botín y comprar equipo.
-- Login con Steam, y dinero e inventario que se conservan entre sesiones.
+- Login con usuario y contraseña, y dinero e inventario que se conservan entre sesiones.
 - HUD: salud, armadura, dinero, munición, nivel de buscado, minimapa con alarmas (solo policía).
 - Comandos de admin: listar jugadores, expulsar, sancionar.
 
@@ -255,7 +255,8 @@ Con estas decisiones aprobadas arranca la Fase 1.
 
 - [ ] Motor: Unreal Engine 5, última 5.x estable, congelada durante el MVP
 - [ ] Backend: Node.js + TypeScript + PostgreSQL
-- [ ] Login solo con Steam, sin usuario y contraseña propios
+- [x] Login con usuario y contraseña en el MVP; Steam como vinculación posterior
+- [x] Despliegue en el VPS propio: `api.facundofr.com` (backend) y `juego.facundofr.com` (servidor de juego). Plan detallado en [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)
 - [ ] Servidores persistentes de 16 jugadores (hasta 4 policías), con bots policía de relleno
 - [ ] Orden de fases: núcleo del juego (casas, alarmas, policía) antes del backend
 - [ ] Alcance del MVP tal como figura arriba; clanes, territorios, bases y mercado después

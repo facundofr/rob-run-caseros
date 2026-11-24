@@ -5,7 +5,7 @@ import { AppError } from "../errors.js";
 export interface PlayerProfile {
   accountId: number;
   characterId: number;
-  steamId: string;
+  steamId: string | null;
   name: string;
   status: "active" | "banned";
   cash: number;
@@ -27,8 +27,36 @@ async function getProfileBySteamId(q: Queryable, steamId: string): Promise<Playe
 }
 
 /**
- * Devuelve el perfil del jugador; si es la primera vez que entra, crea cuenta, personaje y billetera
- * en una sola transacción. Una cuenta suspendida no puede entrar.
+ * Crea cuenta, personaje y billetera. Debe llamarse dentro de una transacción.
+ * Devuelve el id de la cuenta.
+ */
+export async function createPlayer(q: Queryable, steamId: string | null, displayName: string, actor: string): Promise<number> {
+  const account = (await q.query<{ id: number }>(
+    "INSERT INTO accounts (steam_id, display_name) VALUES ($1, $2) RETURNING id",
+    [steamId, displayName],
+  )).rows[0]!;
+  const character = (await q.query<{ id: number }>(
+    "INSERT INTO characters (account_id, name) VALUES ($1, $2) RETURNING id",
+    [account.id, displayName],
+  )).rows[0]!;
+  await q.query("INSERT INTO wallets (character_id) VALUES ($1)", [character.id]);
+  await q.query("INSERT INTO audit_log (actor, action, details) VALUES ($1, 'account_created', $2)", [
+    actor,
+    JSON.stringify({ accountId: account.id }),
+  ]);
+  return account.id;
+}
+
+export function assertActive(profile: PlayerProfile): PlayerProfile {
+  if (profile.status !== "active") {
+    throw new AppError(403, "account_banned", "La cuenta está suspendida.");
+  }
+  return profile;
+}
+
+/**
+ * Login por Steam (y de desarrollo): devuelve el perfil del jugador; si es la primera vez que entra,
+ * crea cuenta, personaje y billetera en una sola transacción. Una cuenta suspendida no puede entrar.
  */
 export async function findOrCreatePlayer(db: Db, steamId: string, displayName: string): Promise<PlayerProfile> {
   let profile = await getProfileBySteamId(db, steamId);
@@ -36,20 +64,8 @@ export async function findOrCreatePlayer(db: Db, steamId: string, displayName: s
   if (!profile) {
     try {
       profile = await db.tx(async (q) => {
-        const account = (await q.query<{ id: number }>(
-          "INSERT INTO accounts (steam_id, display_name) VALUES ($1, $2) RETURNING id",
-          [steamId, displayName],
-        )).rows[0]!;
-        const character = (await q.query<{ id: number }>(
-          "INSERT INTO characters (account_id, name) VALUES ($1, $2) RETURNING id",
-          [account.id, displayName],
-        )).rows[0]!;
-        await q.query("INSERT INTO wallets (character_id) VALUES ($1)", [character.id]);
-        await q.query("INSERT INTO audit_log (actor, action, details) VALUES ($1, 'account_created', $2)", [
-          `steam:${steamId}`,
-          JSON.stringify({ accountId: account.id }),
-        ]);
-        return (await getProfileByAccountId(q, account.id))!;
+        const accountId = await createPlayer(q, steamId, displayName, `steam:${steamId}`);
+        return (await getProfileByAccountId(q, accountId))!;
       });
     } catch (error) {
       // Dos logins simultáneos de un jugador nuevo: el segundo encuentra la cuenta ya creada.
@@ -63,8 +79,5 @@ export async function findOrCreatePlayer(db: Db, steamId: string, displayName: s
   if (!profile) {
     throw new AppError(500, "account_unavailable", "No se pudo crear la cuenta.");
   }
-  if (profile.status !== "active") {
-    throw new AppError(403, "account_banned", "La cuenta está suspendida.");
-  }
-  return profile;
+  return assertActive(profile);
 }

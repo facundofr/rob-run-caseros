@@ -30,6 +30,23 @@ const configSchema = z.object({
 
   /** Duración del token de sesión del jugador, en segundos. */
   SESSION_TTL_SECONDS: z.coerce.number().int().min(60).default(900),
+
+  /** Costo de scrypt (potencia de 2). 131072 = 2^17, recomendado por OWASP. Solo las pruebas lo bajan. */
+  PASSWORD_SCRYPT_N: z.coerce
+    .number()
+    .int()
+    .refine((value) => value >= 1024 && (value & (value - 1)) === 0, "PASSWORD_SCRYPT_N debe ser potencia de 2 y al menos 1024")
+    .default(131072),
+
+  /** Intentos fallidos seguidos antes de bloquear la cuenta, y minutos de bloqueo. */
+  LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().min(3).default(5),
+  LOGIN_LOCK_MINUTES: z.coerce.number().int().min(1).default(15),
+
+  /** true cuando el backend está detrás de un proxy (Caddy): toma la IP real del header X-Forwarded-For. */
+  TRUST_PROXY: booleanFromEnv,
+
+  /** Pedidos de login/registro por minuto y por IP. */
+  AUTH_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(10),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -43,6 +60,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     }
     if (!config.DATABASE_URL) {
       throw new Error("DATABASE_URL es obligatoria en producción.");
+    }
+    if (config.PASSWORD_SCRYPT_N < 65536) {
+      throw new Error("PASSWORD_SCRYPT_N es demasiado bajo para producción (mínimo 65536).");
     }
   }
   return config;

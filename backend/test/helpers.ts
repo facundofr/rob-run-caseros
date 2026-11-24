@@ -23,12 +23,30 @@ export interface TestContext {
   config: Config;
 }
 
+/** Crea la app sobre una base existente (para probar cambios de configuración con los mismos datos). */
+export async function createTestAppOn(db: Db, overrides: Partial<Record<string, string>> = {}): Promise<FastifyInstance> {
+  const config = loadConfig({
+    NODE_ENV: "test",
+    JWT_SECRET: "test-jwt-secret-0123456789abcdefghijklmnop",
+    SERVER_API_KEY: SERVER_KEY,
+    AUTH_DEV_MODE: "true",
+    PASSWORD_SCRYPT_N: "1024",
+    AUTH_RATE_LIMIT_PER_MINUTE: "100",
+    ...overrides,
+  });
+  const app = buildApp({ db, config, steam: fakeSteam });
+  await app.ready();
+  return app;
+}
+
 export async function createTestApp(overrides: Partial<Record<string, string>> = {}): Promise<TestContext> {
   const config = loadConfig({
     NODE_ENV: "test",
     JWT_SECRET: "test-jwt-secret-0123456789abcdefghijklmnop",
     SERVER_API_KEY: SERVER_KEY,
     AUTH_DEV_MODE: "true",
+    PASSWORD_SCRYPT_N: "1024", // costo bajo para que las pruebas sean rápidas
+    AUTH_RATE_LIMIT_PER_MINUTE: "100",
     ...overrides,
   });
   const db = await createPgliteDb();

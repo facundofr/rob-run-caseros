@@ -2,9 +2,10 @@
 
 Juego multijugador de mundo abierto ambientado en Caseros, Zona Oeste del conurbano bonaerense. Unreal Engine 5, servidor dedicado autoritativo, 16 jugadores por servidor.
 
+- Plan de acción y estado: [docs/DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md)
 - Arquitectura y decisiones: [docs/FASE0_INFORME.md](docs/FASE0_INFORME.md)
 - Backend (cuentas, dinero, servidores): [backend/README.md](backend/README.md)
-- Servidor dedicado en el VPS: [infra/vps/README.md](infra/vps/README.md)
+- Despliegue en el VPS (facundofr.com): [infra/vps/README.md](infra/vps/README.md)
 - Cambios por versión: [CHANGELOG.md](CHANGELOG.md)
 
 **Estado actual: MVP 0, código escrito y todavía sin compilar.** La primera compilación se hace en la PC de desarrollo; es normal que aparezcan errores a corregir.

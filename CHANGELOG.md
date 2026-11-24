@@ -1,5 +1,20 @@
 # Changelog
 
+## [Sin publicar] Login con usuario y contraseña, y despliegue en el VPS
+
+### Agregado
+- `POST /v1/auth/register` y `POST /v1/auth/login`: cuentas con usuario, contraseña y email opcional.
+- Contraseñas con hash scrypt (N = 2^17); rehash automático si se sube el costo.
+- Protección contra fuerza bruta: límite de pedidos por IP y bloqueo de 15 minutos tras 5 intentos fallidos. El error no revela si el usuario existe.
+- Mensajes de validación en español, listos para mostrar en la pantalla de login.
+- `TRUST_PROXY` para tomar la IP real del jugador detrás de Caddy.
+- `infra/vps/setup-vps.sh` y `deploy-backend.sh`: instalación y actualización en el VPS (`api.facundofr.com` con HTTPS, PostgreSQL, firewall, servicios).
+- `docs/DEVELOPMENT_ROADMAP.md`: plan de acción hasta el MVP.
+- 10 pruebas nuevas (32 en total).
+
+### Cambiado
+- El MVP usa login con usuario y contraseña; Steam queda como vinculación posterior.
+
 ## [Sin publicar] Fase 4: backend
 
 Probado en esta máquina: 22 pruebas automáticas y prueba manual del flujo completo por HTTP.
