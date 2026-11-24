@@ -3,6 +3,7 @@
 Juego multijugador de mundo abierto ambientado en Caseros, Zona Oeste del conurbano bonaerense. Unreal Engine 5, servidor dedicado autoritativo, 16 jugadores por servidor.
 
 - Arquitectura y decisiones: [docs/FASE0_INFORME.md](docs/FASE0_INFORME.md)
+- Backend (cuentas, dinero, servidores): [backend/README.md](backend/README.md)
 - Servidor dedicado en el VPS: [infra/vps/README.md](infra/vps/README.md)
 - Cambios por versión: [CHANGELOG.md](CHANGELOG.md)
 
@@ -33,6 +34,7 @@ Sin vehículos, sin backend (nada se guarda al salir) y sin bots policía.
     /BarrioCharacters Personaje, movimiento (sprint predicho en red), cámara, controles, arresto
     /BarrioWorld      Barrio en gris, puntos de robo, reducidor, comisaría, celda
     /BarrioUI         HUD. Puede leer de los otros módulos; ninguno depende de él
+/backend              API: cuentas, dinero (ledger), servidores de juego. Ver backend/README.md
 /infra/vps            Despliegue del servidor dedicado en el VPS
 /docs                 Documentación
 ```

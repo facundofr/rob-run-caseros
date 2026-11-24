@@ -23,6 +23,7 @@ game/*.xcworkspace
 backend/node_modules/
 backend/dist/
 backend/.env
+backend/data/
 
 # Sistema
 Thumbs.db

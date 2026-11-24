@@ -1,5 +1,17 @@
 # Changelog
 
+## [Sin publicar] Fase 4: backend
+
+Probado en esta máquina: 22 pruebas automáticas y prueba manual del flujo completo por HTTP.
+
+### Agregado
+- `backend/`: API en Node.js + TypeScript (Fastify) con PostgreSQL, o PGlite embebido para desarrollo y pruebas.
+- Cuentas con login por Steam (validación del ticket con la Web API) y login de desarrollo con nombre.
+- Tokens de sesión firmados de 15 minutos, verificados por el servidor de juego.
+- Economía con ledger: idempotente, sin saldos negativos, sin duplicación con pedidos simultáneos, auditada.
+- Registro de servidores de juego con heartbeat y recomendación del más poblado con lugar.
+- Migraciones SQL versionadas.
+
 ## [Sin publicar] MVP 0: robo, alarma y policía
 
 Código escrito, pendiente de primera compilación y de las pruebas del README.
