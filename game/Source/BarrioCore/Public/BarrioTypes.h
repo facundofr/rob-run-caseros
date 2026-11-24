@@ -4,7 +4,7 @@
 #include "BarrioTypes.generated.h"
 
 /**
- * Rol del jugador dentro del barrio (ver docs/GAME_DESIGN_DOCUMENT.md, sección 3).
+ * Rol del jugador dentro del barrio (ver docs/DISENO_JUEGO.md, sección 3).
  * - Vecino: por defecto, no usa armas ni roba, no pierde nada al morir.
  * - Ladrón: se pone el pasamontañas; solo deja de serlo cruzando una salida del barrio.
  * - Policía: turno en la comisaría, cupo limitado, solo puede dañar ladrones.

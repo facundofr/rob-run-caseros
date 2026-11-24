@@ -1,10 +1,10 @@
-# Brief de arte: Barrio
+# Arte: encargo y especificaciones
 
 Para quien vaya a hacer el arte del juego: el diseñador del equipo y cualquier artista contratado. Define qué hay que hacer, en qué orden y con qué formato técnico, para que todo encaje en Unreal sin retrabajo.
 
 ## 1. Qué es el juego
 
-Multijugador en tercera persona ambientado en **Caseros, partido de Tres de Febrero, Zona Oeste del conurbano bonaerense, época actual**. Los jugadores son vecinos, ladrones o policías en un barrio de casas bajas. Reglas completas: [GAME_DESIGN_DOCUMENT.md](GAME_DESIGN_DOCUMENT.md).
+Multijugador en tercera persona ambientado en **Caseros, partido de Tres de Febrero, Zona Oeste del conurbano bonaerense, época actual**. Los jugadores son vecinos, ladrones o policías en un barrio de casas bajas. Reglas completas: [DISENO_JUEGO.md](DISENO_JUEGO.md).
 
 **Estilo:** realista con un poco de estilización, para que se lea bien de lejos y corra en PCs medias. Paleta de conurbano: revoque, ladrillo a la vista, rejas negras y verdes, persianas de chapa, veredas grises, cables, árboles de vereda.
 

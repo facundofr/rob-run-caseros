@@ -1,12 +1,22 @@
-# Barrio — Documento de diseño (roles, reglas y loop)
+# Diseño del juego
 
-Actualizado: 24 de noviembre de 2026. Fuente de verdad de las reglas del juego: el código se ajusta a este documento.
+Actualizado: 24 de noviembre de 2026. **Fuente de verdad de las reglas**: el código se ajusta a este documento. Qué está implementado: sección 10 y [PLAN.md](PLAN.md).
 
 Barrio toma mecánicas del género *sandbox criminal* (roles que se eligen al entrar, robos, policías jugadores, arresto, coima) y las adapta a **su propia identidad**: Caseros, servidores de 16 jugadores, nombres y valores propios. No es una copia de otro juego. Las referencias de mercado están en [referencias/](referencias/) y se usan solo como inspiración.
 
-## 1. Principio de diseño
+## 1. Principio de diseño y ambientación
 
 **Riesgo opcional, visible y calculable.** Por defecto no se pierde nada. El riesgo empieza cuando el jugador elige ponerse el pasamontañas, y desde ahí todo lo que lleva encima se puede perder. La pregunta que el juego tiene que provocar todo el tiempo es: *"¿lo que llevo encima ya vale más de lo que me puedo permitir perder?"*.
+
+**Ambientación:** Caseros, partido de Tres de Febrero, Zona Oeste del conurbano bonaerense, época actual. Rasgos del barrio que se vuelven mecánicas:
+
+- **Casas bajas con rejas, portones y persianas.** Cada entrada es una decisión: forzar en silencio o romper con ruido.
+- **Alarma vecinal** (más adelante): un botón comunitario avisa a toda la cuadra.
+- **Comercios de barrio** (kiosco, almacén, verdulería): robos rápidos con poco botín.
+- **La moto** como vehículo icónico: es el primer vehículo previsto.
+- **Vías del tren y avenidas** como salidas del barrio y rutas de escape.
+
+**Cuidados legales:** el nombre del barrio se puede usar, pero no marcas reales de comercios ni el nombre o escudo de la policía real. La policía del juego es ficticia.
 
 ## 2. Zonas del mapa
 

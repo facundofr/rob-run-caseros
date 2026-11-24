@@ -8,7 +8,7 @@
 class ABarrioPlayerState;
 
 /**
- * Reglas de la partida. Existe solo en el servidor. Implementa docs/GAME_DESIGN_DOCUMENT.md.
+ * Reglas de la partida. Existe solo en el servidor. Implementa docs/DISENO_JUEGO.md.
  *
  * Escucha los eventos de UBarrioGameEvents y decide:
  * - Roles: vecino por defecto; ladrón al ponerse el pasamontañas (2 s, fuera de zona segura) hasta

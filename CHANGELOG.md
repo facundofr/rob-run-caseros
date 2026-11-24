@@ -1,8 +1,14 @@
 # Changelog
 
+## [Sin publicar] Documentación reorganizada
+
+- Un archivo por tema, todos en `docs/`: `PLAN`, `DISENO_JUEGO`, `ARQUITECTURA`, `GUIA_DESARROLLO`, `PRUEBAS`, `DESPLIEGUE_VPS`, `BACKEND`, `ARTE`. El README quedó como portada e índice, y `AGENTS.md` como guía para asistentes de IA.
+- `FASE0_INFORME.md` se dividió: la arquitectura pasó a `ARQUITECTURA.md` (actualizada a lo implementado, con el diagrama en Mermaid), la ambientación a `DISENO_JUEGO.md`, y el equipo, la estimación y los riesgos a `PLAN.md`.
+- `DESPLIEGUE_VPS.md` suma la sección "Qué se instala en el VPS".
+
 ## [Sin publicar] Etapa 6b: reglas de roles v2
 
-Código escrito, pendiente de compilar. Implementa `docs/GAME_DESIGN_DOCUMENT.md`.
+Código escrito, pendiente de compilar. Implementa `docs/DISENO_JUEGO.md`.
 
 ### Agregado
 - Rol **ladrón**: el vecino se pone el pasamontañas (G, 2 s, fuera de zona segura) y deja de serlo solo al cruzar una salida del barrio (`AExitZone`).
@@ -14,7 +20,7 @@ Código escrito, pendiente de compilar. Implementa `docs/GAME_DESIGN_DOCUMENT.md
 - Nivel de búsqueda solo por violencia (+1 por vecino muerto, máximo 3); en nivel 3 toda la ciudad ve al ladrón.
 - Barrio gris con 40 m de terreno "Afuera" para el reducidor.
 - Backend: motivo `police_salary` (33 pruebas).
-- `docs/ARTE_BRIEF.md`: encargo de arte (prioridades, especificaciones técnicas, quién hace qué).
+- `docs/ARTE.md`: encargo de arte (prioridades, especificaciones técnicas, quién hace qué).
 
 ### Cambiado
 - La alarma ya no pone al ladrón como buscado: solo marca dónde ocurre el robo.
@@ -47,7 +53,7 @@ Código escrito, pendiente de compilar.
 - Mensajes de validación en español, listos para mostrar en la pantalla de login.
 - `TRUST_PROXY` para tomar la IP real del jugador detrás de Caddy.
 - `infra/vps/setup-vps.sh` y `deploy-backend.sh`: instalación y actualización en el VPS (`caseros-api.facundofr.com` con HTTPS, PostgreSQL, firewall, servicios).
-- `docs/DEVELOPMENT_ROADMAP.md`: plan de acción hasta el MVP.
+- `docs/PLAN.md`: plan de acción hasta el MVP.
 - 10 pruebas nuevas (32 en total).
 
 ### Cambiado
