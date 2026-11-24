@@ -1,0 +1,29 @@
+# Unreal Engine: archivos generados
+game/Binaries/
+game/Intermediate/
+game/Saved/
+game/DerivedDataCache/
+game/Build/
+game/.vs/
+game/*.sln
+game/*.VC.db
+game/*.opensdf
+game/*.sdf
+game/*.suo
+game/*.xcodeproj
+game/*.xcworkspace
+
+# IDEs
+.vs/
+.idea/
+.vscode/
+*.code-workspace
+
+# Backend (Fase 4)
+backend/node_modules/
+backend/dist/
+backend/.env
+
+# Sistema
+Thumbs.db
+.DS_Store

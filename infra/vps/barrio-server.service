@@ -1,0 +1,15 @@
+[Unit]
+Description=Barrio - servidor dedicado (MVP 0)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=barrio
+WorkingDirectory=/opt/barrio/server
+ExecStart=/opt/barrio/server/BarrioServer.sh -log -port=7777
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
