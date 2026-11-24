@@ -1,5 +1,10 @@
 # Changelog
 
+## [Sin publicar] Entornos de trabajo
+
+- `docs/ENTORNOS.md`: dos lugares de trabajo unidos por GitHub. En la PC de desarrollo va todo lo de Unreal; en el VPS, por VS Code Remote-SSH con Claude Code, van el backend, los despliegues y los logs. Incluye la preparación del VPS (usuario con clave SSH, herramientas, copia de trabajo, VS Code y Claude Code) y las precauciones por los servicios en producción.
+- `AGENTS.md`: cómo detectar en qué entorno está la IA y qué puede hacer en cada uno.
+
 ## [Sin publicar] Documentación reorganizada
 
 - Un archivo por tema, todos en `docs/`: `PLAN`, `DISENO_JUEGO`, `ARQUITECTURA`, `GUIA_DESARROLLO`, `PRUEBAS`, `DESPLIEGUE_VPS`, `BACKEND`, `ARTE`. El README quedó como portada e índice, y `AGENTS.md` como guía para asistentes de IA.

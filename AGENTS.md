@@ -4,6 +4,17 @@ Punto de entrada para cualquier IA que trabaje en este repositorio (Claude Code,
 
 **Barrio** es un juego multijugador en tercera persona ambientado en Caseros (Unreal Engine 5 + backend Node.js), hecho por un programador a tiempo parcial y un diseñador. El índice de la documentación está en [README.md](README.md). Cada tema tiene un único archivo: no repetir contenido entre archivos, enlazar.
 
+## Dónde estás trabajando
+
+El proyecto se trabaja desde dos lugares ([docs/ENTORNOS.md](docs/ENTORNOS.md)). Antes de actuar, identificar en cuál estás:
+
+| Si... | Estás en | Podés | No podés |
+| --- | --- | --- | --- |
+| El sistema es Windows | **PC de desarrollo** | Todo lo de Unreal (compilar, editor, empaquetar), backend, documentación | Tocar el VPS directamente (solo por SSH o `scp`, con confirmación del usuario) |
+| El sistema es Linux y existe `/opt/barrio` | **VPS de producción** | Backend en `~/rob-run-caseros`, `npm test`, desplegar con `deploy-backend.sh`, ver logs y estado de servicios | Compilar Unreal o correr tareas pesadas; editar `/opt/barrio/repo` a mano; tocar las apps React, Nginx/Caddy de otros sitios o `api.facundofr.com` |
+
+En el VPS, todo comando con `sudo`, reinicio de servicios o cambio de configuración se le muestra al usuario y espera su confirmación.
+
 ## Antes de actuar
 
 1. **Estado real del proyecto:** [docs/PLAN.md](docs/PLAN.md). En resumen: el backend está probado; los scripts del VPS nunca se ejecutaron; **el código de Unreal nunca se compiló** y la primera compilación va a dar errores.

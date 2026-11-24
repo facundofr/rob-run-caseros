@@ -12,6 +12,7 @@ Cada tema tiene un solo archivo.
 | --- | --- | --- |
 | [AGENTS.md](AGENTS.md) | Reglas del repo y orden de pasos para levantar todo | Asistentes de IA (y cualquiera que empiece) |
 | [docs/PLAN.md](docs/PLAN.md) | **Estado del proyecto**, etapas, criterios de cierre, riesgos | Todo el equipo |
+| [docs/ENTORNOS.md](docs/ENTORNOS.md) | Cómo trabajar: qué se hace en la PC y qué en el VPS, VS Code Remote-SSH, Claude Code en el VPS | Programación |
 | [docs/DISENO_JUEGO.md](docs/DISENO_JUEGO.md) | Reglas del juego: roles, robo, captura, recompensas, ambientación | Todo el equipo |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Cómo está construido y por qué: componentes, stack, módulos, base de datos | Programación |
 | [docs/GUIA_DESARROLLO.md](docs/GUIA_DESARROLLO.md) | PC de desarrollo: instalar, compilar, armar el mapa, controles | Programación |
