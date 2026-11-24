@@ -28,3 +28,7 @@ backend/data/
 # Sistema
 Thumbs.db
 .DS_Store
+
+# Referencias de mercado: solo locales, no se publican
+docs/referencias/*
+!docs/referencias/README.md

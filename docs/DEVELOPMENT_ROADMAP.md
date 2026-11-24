@@ -2,7 +2,9 @@
 
 Actualizado: 24 de noviembre de 2026.
 
-Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com`, con cuentas de usuario y contraseña, dinero que se conserva entre sesiones y el loop robo → alarma → persecución → escape o arresto.
+Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com`, con cuentas de usuario y contraseña, dinero que se conserva entre sesiones y el loop vecino → pasamontañas → robo → escape por una salida del barrio → venta, contra policías jugadores.
+
+Las reglas de roles y del juego están en [GAME_DESIGN_DOCUMENT.md](GAME_DESIGN_DOCUMENT.md).
 
 ## Estado
 
@@ -16,7 +18,8 @@ Objetivo: un MVP jugable por internet con 16 jugadores en `caseros.facundofr.com
 | 4 | Compilar y probar el MVP 0 en la PC de desarrollo | **Pendiente: bloquea las etapas de Unreal** | PC de desarrollo |
 | 5 | Servidor de juego en el VPS | Guía lista, depende de 4 | `infra/vps/` |
 | 6 | Unreal conectado al backend: pantalla de login, verificación de sesión, dinero persistente | **Código escrito, sin compilar** | `game/Source/BarrioOnline`, `BarrioUI` |
-| 7 | MVP completo: bots policía, inventario, moto, compensación de latencia | Pendiente | `game/` |
+| 6b | **Reglas de roles v2** según el documento de diseño: pasamontañas, salidas del barrio, la policía solo daña ladrones, rendición y esposas, pérdida total del ladrón, reducidor Afuera, salario de turno, notoriedad | Pendiente, diseño listo | `game/` |
+| 7 | MVP completo: bots policía, nivel de búsqueda por violencia, ganzúa y ventanas, inventario, moto, compensación de latencia | Pendiente | `game/` |
 | 8 | Arte del barrio (kit modular de Caseros) | Pendiente, en paralelo | Diseñador |
 | 9 | Alpha cerrada con 16 jugadores | Pendiente | VPS |
 
