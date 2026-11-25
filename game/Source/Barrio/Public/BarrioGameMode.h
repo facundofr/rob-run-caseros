@@ -33,7 +33,7 @@ public:
 	ABarrioGameMode();
 
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-	virtual bool ShouldSpawnAtStartSpot_Implementation(AController* Player) override;
+	virtual bool ShouldSpawnAtStartSpot(AController* Player) override;
 
 	// Cuentas: con backend activo, nadie entra sin una sesión válida.
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;

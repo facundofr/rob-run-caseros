@@ -301,7 +301,7 @@ void ABarrioGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 // Aparición
 // ---------------------------------------------------------------------------------------------
 
-bool ABarrioGameMode::ShouldSpawnAtStartSpot_Implementation(AController* Player)
+bool ABarrioGameMode::ShouldSpawnAtStartSpot(AController* Player)
 {
 	return false; // siempre elegir según el rol y la cárcel
 }
@@ -773,5 +773,11 @@ int32 ABarrioGameMode::CountPolice() const
 
 int32 ABarrioGameMode::GetPoliceQuota() const
 {
-	return FMath::Clamp(GetNumPlayers() / FMath::Max(1, PlayersPerPolice), 1, MaxPolice);
+	// GetNumPlayers() del motor no es const: se cuentan los jugadores humanos a mano.
+	int32 NumPlayers = 0;
+	for (const APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		NumPlayers += (PlayerState && !PlayerState->IsABot()) ? 1 : 0;
+	}
+	return FMath::Clamp(NumPlayers / FMath::Max(1, PlayersPerPolice), 1, MaxPolice);
 }

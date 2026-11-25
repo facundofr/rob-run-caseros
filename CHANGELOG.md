@@ -1,5 +1,15 @@
 # Changelog
 
+## [Sin publicar] Etapa 4: primera compilación
+
+El editor (`BarrioEditor`, Win64, Development) compila sin errores ni advertencias con Unreal Engine 5.8.4 y Visual Studio 2022 (17.14).
+
+### Corregido
+- `ASafeZone` pasa a llamarse `ABarrioSafeZone`: chocaba con `USafeZone` de UMG. En el editor se busca como `BarrioSafeZone`.
+- `ABarrioGameMode::ShouldSpawnAtStartSpot`: en 5.8 es una función virtual común, sin `_Implementation`.
+- `ABarrioGameMode::GetPoliceQuota`: cuenta los jugadores humanos a mano, porque `GetNumPlayers()` del motor no es `const`.
+- `Barrio.uproject` queda asociado a la versión 5.8 del motor.
+
 ## [Sin publicar] Entornos de trabajo
 
 - `docs/ENTORNOS.md`: dos lugares de trabajo unidos por GitHub. En la PC de desarrollo va todo lo de Unreal; en el VPS, por VS Code Remote-SSH con Claude Code, van el backend, los despliegues y los logs. Incluye la preparación del VPS (usuario con clave SSH, herramientas, copia de trabajo, VS Code y Claude Code) y las precauciones por los servicios en producción.

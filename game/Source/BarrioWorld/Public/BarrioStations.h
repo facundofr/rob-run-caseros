@@ -101,12 +101,12 @@ private:
  * y no se puede poner el pasamontañas.
  */
 UCLASS()
-class BARRIOWORLD_API ASafeZone : public ABarrioZone
+class BARRIOWORLD_API ABarrioSafeZone : public ABarrioZone
 {
 	GENERATED_BODY()
 
 public:
-	ASafeZone();
+	ABarrioSafeZone();
 
 protected:
 	virtual void BeginPlay() override;

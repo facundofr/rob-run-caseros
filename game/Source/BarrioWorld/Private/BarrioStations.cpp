@@ -183,12 +183,12 @@ void AExitZone::OnAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 }
 
-ASafeZone::ASafeZone()
+ABarrioSafeZone::ABarrioSafeZone()
 {
 	Area->ShapeColor = FColor::Cyan;
 }
 
-void ASafeZone::BeginPlay()
+void ABarrioSafeZone::BeginPlay()
 {
 	Super::BeginPlay();
 	RegisteredBounds = Area->Bounds.GetBox();
@@ -198,7 +198,7 @@ void ASafeZone::BeginPlay()
 	}
 }
 
-void ASafeZone::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ABarrioSafeZone::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UBarrioGameEvents* Events = UBarrioGameEvents::Get(this))
 	{

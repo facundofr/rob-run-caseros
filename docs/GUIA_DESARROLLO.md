@@ -53,10 +53,10 @@ Estos pasos crean assets (`.uasset` y `.umap`) que no se pueden escribir desde c
 | --- | --- | --- | --- |
 | `GreyboxNeighborhood` | `0, 0, 0` | — | Las 4 manzanas más 40 m de "Afuera" alrededor. Al dar Play crea una puerta robable en cada casa (80 en total) |
 | `Player Start` × 2 | `500, 500, 100` y `500, 11500, 100` | — | Aparición de vecinos |
-| `SafeZone` | `500, 500, 100` | `600, 600, 300` | Zona segura de la aparición: sin daño, sin pasamontañas |
+| `BarrioSafeZone` | `500, 500, 100` | `600, 600, 300` | Zona segura de la aparición: sin daño, sin pasamontañas |
 | `Player Start`, con **Player Start Tag** = `Police` | `11500, 500, 100` | — | Aparición de policías |
 | `PoliceStation` | `11500, 800, 55` | — | Mostrador azul: entrar de servicio, o terminar el turno y cobrar |
-| `SafeZone` | `11500, 600, 100` | `500, 500, 300` | Zona segura de la comisaría |
+| `BarrioSafeZone` | `11500, 600, 100` | `500, 500, 300` | Zona segura de la comisaría |
 | `ExitZone` × 2 | `-500, 11500, 100` y `23500, 11500, 100` | `500, 600, 300` | Salidas del barrio (cajas amarillas) |
 | `FenceStation` | `-2500, 11500, 55` | — | Mostrador verde: el reducidor, Afuera, pasando la salida oeste |
 | `JailCell` | `-5000, -5000, 200` | — | La celda, lejos del barrio |

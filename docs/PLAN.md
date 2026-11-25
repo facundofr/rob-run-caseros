@@ -17,13 +17,13 @@ Actualizado: 24 de noviembre de 2026. **Única fuente del estado del proyecto**:
 | # | Etapa | Estado | Cómo se hace |
 | --- | --- | --- | --- |
 | 0 | Arquitectura y plan | Hecho | [ARQUITECTURA.md](ARQUITECTURA.md) |
-| 1 | MVP 0 en Unreal: personaje, barrio gris, robos, alarmas, policía, cárcel, pistola | **Código escrito, sin compilar** | — |
+| 1 | MVP 0 en Unreal: personaje, barrio gris, robos, alarmas, policía, cárcel, pistola | **Compila, sin probar** | — |
 | 2 | Backend: cuentas (usuario y contraseña), economía con ledger, lista de servidores | **Hecho y probado** (33 pruebas) | [BACKEND.md](BACKEND.md) |
 | 3 | Backend en el VPS con HTTPS | Scripts listos, **sin ejecutar** | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 1 a 4 |
-| 4 | Compilar y probar el juego en la PC de desarrollo | **Pendiente. Bloquea todo lo de Unreal** | [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) y [PRUEBAS.md](PRUEBAS.md) |
+| 4 | Compilar y probar el juego en la PC de desarrollo | **Compila** con Unreal 5.8.4 (sin errores ni advertencias). Falta armar el mapa y probar con 3 jugadores. Bloquea todo lo de Unreal | [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) y [PRUEBAS.md](PRUEBAS.md) |
 | 5 | Servidor de juego en el VPS | Guía lista, depende de 4 | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 5 |
-| 6 | Unreal conectado al backend: pantalla de login, sesión verificada, dinero guardado | **Código escrito, sin compilar** | — |
-| 6b | Reglas de roles v2: pasamontañas, salidas, zonas seguras, la policía solo daña ladrones, rendición y esposas, salario de turno, notoriedad, búsqueda por violencia | **Código escrito, sin compilar** | [DISENO_JUEGO.md](DISENO_JUEGO.md) |
+| 6 | Unreal conectado al backend: pantalla de login, sesión verificada, dinero guardado | **Compila, sin probar** | — |
+| 6b | Reglas de roles v2: pasamontañas, salidas, zonas seguras, la policía solo daña ladrones, rendición y esposas, salario de turno, notoriedad, búsqueda por violencia | **Compila, sin probar** | [DISENO_JUEGO.md](DISENO_JUEGO.md) |
 | 7 | MVP completo: bots policía, ganzúa y ventanas, inventario, moto, compensación de latencia, recuperar contraseña por email | Pendiente, después de 4 | — |
 | 8 | Arte: kit modular de Caseros, personajes, armas, moto | Pendiente, en paralelo | [ARTE.md](ARTE.md) |
 | 9 | Alpha cerrada con 16 jugadores | Pendiente | — |
@@ -45,7 +45,7 @@ Actualizado: 24 de noviembre de 2026. **Única fuente del estado del proyecto**:
 
 | Riesgo | Mitigación |
 | --- | --- |
-| Muchos errores en la primera compilación de Unreal (cuatro etapas escritas sin compilar) | Compilar cuanto antes. No escribir más código de Unreal hasta compilar lo que hay |
+| Errores de comportamiento en el código de Unreal (compila, pero nunca se probó) | Probar con las listas de [PRUEBAS.md](PRUEBAS.md) antes de escribir más código |
 | El KVM 2 no alcanza para el backend y el juego con 16 jugadores | Medir en la etapa 5. Si no alcanza, separar el servidor de juego |
 | El VPS ya tiene otros servicios en producción | El script de instalación convive con ellos y no los modifica ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md)) |
 | Vehículos en red con tirones | Probarlos aislados antes de integrarlos (etapa 7) |
