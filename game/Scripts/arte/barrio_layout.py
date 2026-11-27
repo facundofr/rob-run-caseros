@@ -155,6 +155,9 @@ CARTELES = ['MI_Cartel_Verde', 'MI_Cartel_Rojo', 'MI_Cartel_Azul', 'MI_Cartel_Bl
 COMERCIOS = ['AlmacenDonTito', 'Kiosco24hs', 'VerduleriaLaEsquina', 'FerreteriaElTornillo', 'PizzeriaLoDeCacho',
              'FarmaciaDelBarrio', 'CarniceriaLosHermanos', 'PanaderiaLaEspiga', 'PeluqueriaEstilo', 'RotiseriaDonaRosa',
              'LibreriaElLapiz', 'GomeriaElRayo', 'PolirrubroLosChicos', 'DespensaMary', 'BazarElSol']
+COMERCIOS2 = ['ZapateriaPasoFirme', 'TiendaMarelu', 'ConexionCelulares', 'OpticaVisionClara', 'MerceriaElHilo',
+              'DeportesLaCancha', 'PintureriaArcoiris', 'JugueteriaElTrompo', 'CotillonFiestita', 'HeladeriaLaNieve',
+              'RegaleriaElMono', 'ForrajeriaLaHuella']
 
 VARIANTS = {
     'A': dict(kind='casa', depth=860.0, entry=('door', 365.0, 455.0, 30.0, 240.0, 0.0), garage=(40.0, 310.0),
@@ -353,8 +356,8 @@ def plan_lots(rng):
                     if c2 != meta['cartel']:
                         lot['swaps'][meta['cartel']] = c2
                 if 'pisos' in meta:        # edificio F: el local de PB lleva marquesina con nombre (slot de EL)
-                    nm = COMERCIOS[(len([l for l in lots if l.get('variant', '')[:1] in ('F', 'E')]) * 5 + 1)
-                                   % len(COMERCIOS)]
+                    pool = COMERCIOS2 + COMERCIOS[1:]          # v5: la calle comercial usa sobre todo los nuevos
+                    nm = pool[(len([l for l in lots if l.get('variant', '')[:1] in ('F', 'E')]) * 5 + 1) % len(pool)]
                     if nm != COMERCIOS[0]:
                         lot['swaps']['MI_Comercio_' + COMERCIOS[0]] = 'MI_Comercio_' + nm
                 e = meta['entry']

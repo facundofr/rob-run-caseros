@@ -2180,9 +2180,38 @@ COMERCIOS = [  # comercios INVENTADOS (sin marcas reales)
                         sub='TODO PARA EL HOGAR', ico='estrella', fg2='#FFF3D6')),
 ]
 
+# v5: segundo atlas de comercios (calle comercial tipo 3 de Febrero). Todos INVENTADOS.
+COMERCIOS2 = [
+    ('ZapateriaPasoFirme', dict(bg='#2B2B2B', fg='#F1E3C6', titulo='ZAPATERÍA PASO FIRME', estilo='serif',
+                                sub='CALZADO · MARROQUINERÍA · CARTERAS', fg2='#D9A441', franja='#D9A441')),
+    ('TiendaMarelu', dict(bg='#F6E9EE', fg='#9B2D5A', titulo='Tienda Marelu', estilo='fira_it',
+                          sub='ROPA · LENCERÍA · BLANCO', borde='#9B2D5A', fg2='#4A4A4A')),
+    ('ConexionCelulares', dict(bg='#0F2F5C', fg='#3FD0F2', titulo='CONEXIÓN CELULARES', estilo='display',
+                               sub='FUNDAS · ACCESORIOS · SERVICE TÉCNICO', ico='rayo', fg2='#F4F4F0')),
+    ('OpticaVisionClara', dict(bg='#F3F5F7', fg='#1F4F8A', titulo='ÓPTICA VISIÓN CLARA', estilo='calle',
+                               sub='ANTEOJOS · LENTES DE CONTACTO · RECETAS', franja='#1F4F8A', fg2='#1F4F8A')),
+    ('MerceriaElHilo', dict(bg='#E9D8B4', fg='#6B2D2D', titulo='Mercería El Hilo', estilo='mano',
+                            sub='LANAS · BOTONES · CIERRES · PUNTILLAS', borde='#6B2D2D', fg2='#3A2A1A')),
+    ('DeportesLaCancha', dict(bg='#1E7A3A', fg='#FFFFFF', titulo='DEPORTES LA CANCHA', estilo='negra',
+                              sub='CALZADO · INDUMENTARIA · PELOTAS', ico='estrella', fg2='#F2C21B')),
+    ('PintureriaArcoiris', dict(bg='#F4F1EA', fg='#C2321F', titulo='PINTURERÍA ARCOÍRIS', estilo='display',
+                                sub='LÁTEX · ESMALTES · ACCESORIOS', borde='#2F6FB3', fg2='#2F6FB3')),
+    ('JugueteriaElTrompo', dict(bg='#F2C21B', fg='#C2241F', titulo='JUGUETERÍA EL TROMPO', estilo='negra',
+                                sub='JUGUETES · RODADOS · DIDÁCTICOS', ico='estrella', fg2='#1F3F8A')),
+    ('CotillonFiestita', dict(bg='#7A2FA0', fg='#FFE45C', titulo='COTILLÓN FIESTITA', estilo='display',
+                              sub='DISFRACES · GLOBOS · DESCARTABLES', ico='estrella', fg2='#FFFFFF')),
+    ('HeladeriaLaNieve', dict(bg='#EAF6FB', fg='#1F6FA8', titulo='Heladería La Nieve', estilo='serif_it',
+                              sub='HELADO ARTESANAL · DELIVERY', ico='gota', fg2='#C2416B')),
+    ('RegaleriaElMono', dict(bg='#C2416B', fg='#FFF4F6', titulo='REGALERÍA EL MOÑO', estilo='fira',
+                             sub='BIJOUTERIE · REGALOS · PERFUMES', fg2='#FFF4F6', franja='#7A1F3A')),
+    ('ForrajeriaLaHuella', dict(bg='#5A3A1E', fg='#F2D68A', titulo='FORRAJERÍA LA HUELLA', estilo='negra',
+                                sub='ALIMENTO BALANCEADO · ACCESORIOS', ico='espiga', fg2='#F2D68A')),
+]
+
 ATLAS = {   # nombre: (ancho, alto, con alfa)
     'Calle': (2048, 2048, False),
     'Comercio': (2048, 4096, False),
+    'Comercio2': (2048, 4096, False),
     'Varios': (2048, 2048, True),
 }
 
@@ -2198,6 +2227,10 @@ def catalogo_carteles():
                     dict(sol=0.35, mugre=0.35, oxido=0.35, rayas=0.5, rough_base=0.42), False))
     for i, (slug, spec) in enumerate(COMERCIOS):
         cat.append(('MI_Comercio_' + slug, 'Comercio', 0, i * 256, 2048, 256,
+                    (lambda sp: (lambda w, h, r: dib_comercio(w, h, sp, r)))(spec),
+                    dict(sol=0.45, mugre=0.45, oxido=0.25, rayas=0.35, rough_base=0.5), False))
+    for i, (slug, spec) in enumerate(COMERCIOS2):
+        cat.append(('MI_Comercio_' + slug, 'Comercio2', 0, i * 256, 2048, 256,
                     (lambda sp: (lambda w, h, r: dib_comercio(w, h, sp, r)))(spec),
                     dict(sol=0.45, mugre=0.45, oxido=0.25, rayas=0.35, rough_base=0.5), False))
     chapa = dict(sol=0.3, mugre=0.35, oxido=0.25, rayas=0.35, rough_base=0.45)

@@ -814,7 +814,7 @@ CART_DIR = "Carteles"
 CART_TEX = f"{TEX_ROOT}/{CART_DIR}"
 CART_MASTER = f"{MAT_DIR}/M_Barrio_Cartel"
 CART_MASTER_MASK = f"{MAT_DIR}/M_Barrio_Cartel_Mascara"
-CART_ATLAS = {"Calle": (2048, 2048), "Comercio": (2048, 4096), "Varios": (2048, 2048)}
+CART_ATLAS = {"Calle": (2048, 2048), "Comercio": (2048, 4096), "Comercio2": (2048, 4096), "Varios": (2048, 2048)}
 
 # Tabla de RESPALDO (idéntica a gen_textures.catalogo_carteles). Si existe carteles_atlas.json manda el json.
 _CALLES = ["ValentinGomez", "Urquiza", "AvSanMartin", "Ferreyra", "Alberdi", "Nicaragua", "Sabattini", "Fischetti",
@@ -825,12 +825,19 @@ _COMERCIOS = ["AlmacenDonTito", "Kiosco24hs", "VerduleriaLaEsquina", "Ferreteria
               "DespensaMary", "BazarElSol"]
 
 
+_COMERCIOS2 = ["ZapateriaPasoFirme", "TiendaMarelu", "ConexionCelulares", "OpticaVisionClara", "MerceriaElHilo",
+               "DeportesLaCancha", "PintureriaArcoiris", "JugueteriaElTrompo", "CotillonFiestita", "HeladeriaLaNieve",
+               "RegaleriaElMono", "ForrajeriaLaHuella"]
+
+
 def _tabla_respaldo():
     t = {}
     for i, slug in enumerate(_CALLES):
         t["MI_CartelCalle_" + slug] = ("Calle", ((i % 2) * 1024, (i // 2) * 256, 1024, 256), False)
     for i, slug in enumerate(_COMERCIOS):
         t["MI_Comercio_" + slug] = ("Comercio", (0, i * 256, 2048, 256), False)
+    for i, slug in enumerate(_COMERCIOS2):
+        t["MI_Comercio_" + slug] = ("Comercio2", (0, i * 256, 2048, 256), False)
     t.update({
         "MI_Cartel_Comisaria": ("Varios", (0, 0, 2048, 256), False),
         "MI_Cartel_Estacion": ("Varios", (0, 256, 2048, 256), False),

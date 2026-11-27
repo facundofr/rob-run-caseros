@@ -301,6 +301,75 @@ def _poda(d, f=0.45):
 TREE_KIND_ID = {'fresno': 1, 'platano': 2, 'paraiso': 3}
 
 
+# ------------------------------------------------------------------ tarjetas de hojas (v5)
+HOJAS_MI = {'fresno': 'MI_Hojas_Fresno', 'paraiso': 'MI_Hojas_Paraiso', 'platano': 'MI_Hojas_Platano'}
+
+
+def _card_template(mat, quad, esp=0.3):
+    """Tarjeta canónica 1x1 (escala por transform) centrada en el origen, cara en el plano YZ mirando a +X,
+    con UV0 en el cuadrante `quad` (0-3) del atlas T_Hojas (2x2). Dorso con la misma imagen; cantos a un texel
+    transparente. Devuelve una DynamicMesh del pool (la libera el llamador)."""
+    import unreal
+    api = _uv_api()
+    tmp = k.new_mesh()
+    k._box_raw(tmp, k.popts(mat), k.T((0.0, 0.0, 0.0)), esp, 1.0, 1.0, k.ORIGIN['center'])
+    qx, qy = (quad % 2) * 0.5, (quad // 2) * 0.5
+    if api['ok']:
+        n = _int_of(api['num_tri'](tmp))
+        for tid in range(n):
+            p = _vecs(api['tri_pos'](tmp, tid))
+            if len(p) < 3:
+                continue
+            cx = (p[0][0] + p[1][0] + p[2][0]) / 3.0
+            uvs = []
+            for (x, y, z) in p[:3]:
+                if cx > esp * 0.25:
+                    u, v = 0.5 - y, 0.5 - z
+                elif cx < -esp * 0.25:
+                    u, v = y + 0.5, 0.5 - z
+                else:
+                    u, v = 0.01, 0.01
+                u, v = min(max(u, 0.004), 0.996), min(max(v, 0.004), 0.996)
+                uvs.append((qx + 0.5 * u, qy + 0.5 * v))
+            t = api['uvtri']()
+            for name, (u, v) in zip(('uv0', 'uv1', 'uv2'), uvs):
+                k._sp(t, name, unreal.Vector2D(u, v))
+            try:
+                api['set_tri'](tmp, 0, tid, t)
+            except TypeError:
+                api['set_tri'](target_mesh=tmp, uv_set_index=0, triangle_id=tid, uvs=t)
+    else:
+        k.err_once('uv_hojas', 'Sin API de UV: las copas con tarjetas de hojas quedan sin mapear')
+    return tmp
+
+
+def _copa_tarjetas(mb, rng, mat, tpl, c, R, flat, n, size, up_bias=0.45, street_bias=True):
+    """Racimo de tarjetas de hojas sobre un elipsoide (R, R, R*flat) alrededor de c. Cada tarjeta apunta su
+    ramita hacia el centro (el 'arriba' de la imagen va hacia afuera) con giro aleatorio sobre ese eje."""
+    import unreal
+    for i in range(n):
+        # dirección sobre la esfera, sesgada hacia arriba y (en vereda) hacia la calle (+X)
+        z = rng.uniform(-0.55, 1.0)
+        a = rng.uniform(0.0, 2.0 * math.pi)
+        r = math.sqrt(max(0.0, 1.0 - z * z))
+        o = (r * math.cos(a), r * math.sin(a), z)
+        if street_bias and o[0] < 0:
+            o = (o[0] * 0.75, o[1], o[2])
+        o = k.v_norm((o[0], o[1], o[2] + up_bias))
+        dist = rng.uniform(0.55, 0.95)
+        pos = (c[0] + o[0] * R * dist, c[1] + o[1] * R * dist, c[2] + o[2] * R * flat * dist)
+        # eje Z de la tarjeta = afuera; X (normal) perpendicular aleatoria
+        tmpv = (rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.3, 0.3))
+        xn = k.v_norm(k.v_cross(o, tmpv)) if hasattr(k, 'v_cross') else k.v_norm((o[1] * tmpv[2] - o[2] * tmpv[1],
+                                                                              o[2] * tmpv[0] - o[0] * tmpv[2],
+                                                                              o[0] * tmpv[1] - o[1] * tmpv[0]))
+        rot = unreal.MathLibrary.make_rot_from_zx(k.V(o), k.V(xn))
+        sz = size * rng.uniform(0.75, 1.25)
+        # la tarjeta se corre medio tamaño hacia afuera: la ramita queda adentro de la copa
+        pc = (pos[0] + o[0] * sz * 0.35, pos[1] + o[1] * sz * 0.35, pos[2] + o[2] * sz * 0.35)
+        k.append_into(mb.m(mat), tpl[rng.randrange(len(tpl))], k.T(pc, rot, (1.0, sz, sz)))
+
+
 def build_arbol2(kind, seed, pelado=False, big=False):
     """Árbol de vereda/plaza (v4). Escala x1,5 en vereda (9-12 m, la copa techa la calzada como en las refs de
     Valentín Gómez / Esteban Merlo) y x2,2 en plaza (big). Copa = muchos grupos chicos y aplanados de hojas
@@ -392,32 +461,35 @@ def build_arbol2(kind, seed, pelado=False, big=False):
             Rr, flat = (80.0, 110.0), 0.55
         else:
             Rr, flat = (85.0, 122.0), 0.6
-        for (p, d, r) in tips:
-            if rng.random() < 0.12:
-                continue                                    # hueco en la copa
-            R_ = rng.uniform(*Rr) * S
-            c = k.v_add(p, (d[0] * 26.0 * S, d[1] * 26.0 * S, 20.0 * S + d[2] * 10.0))
-            for b in range(2):                              # núcleos
-                off = (rng.uniform(-0.25, 0.25) * R_, rng.uniform(-0.25, 0.25) * R_, rng.uniform(-0.1, 0.15) * R_)
-                rx = R_ * rng.uniform(0.48, 0.58)
-                blob(mb, 'MI_Follaje', k.v_add(c, off), rx, rx * rng.uniform(0.85, 1.1), rx * flat * 0.9,
-                     yaw=rng.uniform(0, 180), pitch=rng.uniform(-8, 8), roll=rng.uniform(-8, 8), steps=(8, 12))
-            for b in range(rng.randint(9, 14)):
-                a = rng.uniform(0.0, 2.0 * math.pi)
-                rad = R_ * math.sqrt(rng.uniform(0.15, 1.0)) * 0.72
-                off = (math.cos(a) * rad, math.sin(a) * rad,
-                       rng.uniform(-0.35, 0.45) * R_ * flat + (0.12 * R_ * flat if rad < 0.4 * R_ else 0.0))
-                if off[0] < 0:
-                    off = (off[0] * 0.7, off[1], off[2])
-                rx = R_ * rng.uniform(0.2, 0.36)
-                blob(mb, 'MI_Follaje', k.v_add(c, off), rx, rx * rng.uniform(0.75, 1.25), rx * rng.uniform(0.5, 0.68),
-                     yaw=rng.uniform(0, 180), pitch=rng.uniform(-12, 12), roll=rng.uniform(-12, 12), steps=(8, 12))
-        # relleno interior (sin cerrar la copa)
-        hc = th + (120.0 if kind != 'paraiso' else 90.0) * S
-        for b in range(rng.randint(2, 3)):
-            q = (top[0] + rng.uniform(-40, 50) * S, top[1] + rng.uniform(-50, 50) * S, hc + rng.uniform(-20, 40) * S)
-            rs = rng.uniform(40.0, 58.0) * S
-            blob(mb, 'MI_Follaje', q, rs, rs, rs * 0.6, yaw=rng.uniform(0, 180), steps=(8, 12))
+        # v5: núcleos de follaje opaco (dan volumen y sombra) + tarjetas de hojas enmascaradas que arman la
+        # silueta (antes eran 9-14 elipsoides por racimo: de cerca se leían como "brócoli").
+        hm = HOJAS_MI.get(kind, 'MI_Hojas_Fresno')
+        registrar_materiales([hm])
+        tpl = []
+        try:
+            tpl = [_card_template(hm, q) for q in range(4)]
+            for (p, d, r) in tips:
+                if rng.random() < 0.10:
+                    continue                                    # hueco en la copa
+                R_ = rng.uniform(*Rr) * S
+                c = k.v_add(p, (d[0] * 26.0 * S, d[1] * 26.0 * S, 20.0 * S + d[2] * 10.0))
+                for b in range(2):                              # núcleos (más chicos que antes, quedan adentro)
+                    off = (rng.uniform(-0.2, 0.2) * R_, rng.uniform(-0.2, 0.2) * R_, rng.uniform(-0.1, 0.12) * R_)
+                    rx = R_ * rng.uniform(0.26, 0.32)               # chicos: quedan tapados por las tarjetas
+                    blob(mb, 'MI_Follaje', k.v_add(c, off), rx, rx * rng.uniform(0.85, 1.1), rx * flat * 0.9,
+                         yaw=rng.uniform(0, 180), pitch=rng.uniform(-8, 8), roll=rng.uniform(-8, 8), steps=(7, 10))
+                _copa_tarjetas(mb, rng, hm, tpl, c, R_, max(flat, 0.55), rng.randint(24, 32),
+                               rng.uniform(105.0, 135.0) * S * 0.55, street_bias=not big)
+            # relleno interior (sin cerrar la copa) + tarjetas que lo rodean
+            hc = th + (120.0 if kind != 'paraiso' else 90.0) * S
+            for b in range(rng.randint(2, 3)):
+                q = (top[0] + rng.uniform(-40, 50) * S, top[1] + rng.uniform(-50, 50) * S, hc + rng.uniform(-20, 40) * S)
+                rs = rng.uniform(26.0, 36.0) * S
+                blob(mb, 'MI_Follaje', q, rs, rs, rs * 0.6, yaw=rng.uniform(0, 180), steps=(7, 10))
+                _copa_tarjetas(mb, rng, hm, tpl, q, rs * 1.9, 0.7, 12, 62.0 * S, street_bias=not big)
+        finally:
+            for t_ in tpl:
+                k.free_mesh(t_)
     # colisión: SOLO el tronco (una caja un poco más chica que el tronco, hasta la cruz)
     rc = r0 * 0.85
     mb.col(-rc, rc, -rc, rc, 0.0, min(th, 400.0))

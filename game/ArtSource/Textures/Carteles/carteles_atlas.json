@@ -19,6 +19,15 @@
    "BC": "T_Carteles_Comercio_BC",
    "ORM": "T_Carteles_Comercio_ORM"
   },
+  "Comercio2": {
+   "size": [
+    2048,
+    4096
+   ],
+   "alpha": false,
+   "BC": "T_Carteles_Comercio2_BC",
+   "ORM": "T_Carteles_Comercio2_ORM"
+  },
   "Varios": {
    "size": [
     2048,
@@ -569,6 +578,210 @@
    "uv": [
     0.0,
     0.9375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_ZapateriaPasoFirme": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    0,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_TiendaMarelu": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    256,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_ConexionCelulares": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    512,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.125,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_OpticaVisionClara": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    768,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.1875,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_MerceriaElHilo": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    1024,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.25,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_DeportesLaCancha": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    1280,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.3125,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_PintureriaArcoiris": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    1536,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_JugueteriaElTrompo": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    1792,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.4375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_CotillonFiestita": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    2048,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.5,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_HeladeriaLaNieve": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    2304,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.5625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_RegaleriaElMono": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    2560,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_ForrajeriaLaHuella": {
+   "atlas": "Comercio2",
+   "rect_px": [
+    0,
+    2816,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.6875,
     1.0,
     0.0625
    ],
