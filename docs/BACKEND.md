@@ -51,6 +51,8 @@ Errores: `{ "error": "<código>", "message": "<texto>" }` con el código HTTP co
 | `POST /v1/auth/dev` | `{ name }` (solo con `AUTH_DEV_MODE`) | igual que Steam |
 | `GET /v1/servers` | | `{ servers: [...], recommended }`: el más poblado con lugar |
 
+Reglas del registro (`src/app.ts`): **usuario** de 3 a 20 caracteres, solo letras, números, punto, guion y guion bajo; **contraseña** de 10 a 128 caracteres, que no contenga el usuario; **email** opcional y válido. Si no se cumplen, el error trae el motivo en español.
+
 ### Servidor de juego (header `x-server-key`)
 
 | Método y ruta | Cuerpo | Respuesta |

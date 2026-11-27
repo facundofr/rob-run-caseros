@@ -41,7 +41,7 @@ flowchart LR
 
 **Algo falla en producción:**
 1. Conectarse al VPS con VS Code.
-2. Pedirle a Claude que revise los logs (`journalctl -u barrio-backend` o `-u barrio-server`) y el estado de los servicios.
+2. Pedirle a Claude que revise los logs (`journalctl -u barrio-backend` o `-u barrio-server`; sin el grupo `systemd-journal` de la sección 3.2, hay que pasarle la salida con `sudo`) y el estado de los servicios.
 3. El arreglo se hace en la copia de trabajo, se prueba, se sube a GitHub y se despliega. **Nunca se edita a mano `/opt/barrio/repo`**: es la copia de producción y solo la actualiza `deploy-backend.sh`.
 
 **Dos copias del repo en el VPS:**
@@ -102,6 +102,9 @@ gh auth login            # elegir GitHub.com, HTTPS, y autenticar en el navegado
 sudo mkdir -p /var/www/rob-run-caseros && sudo chown "$USER:" /var/www/rob-run-caseros
 git clone https://github.com/facundofr/rob-run-caseros.git /var/www/rob-run-caseros/rob-run-caseros
 cd /var/www/rob-run-caseros/rob-run-caseros/backend && npm install && npm test
+
+# Ver los logs de los servicios sin sudo (también le sirve a Claude para diagnosticar). Vale al volver a entrar por SSH
+sudo usermod -aG systemd-journal "$USER"
 ```
 
 Si `setup-vps.sh` todavía no se ejecutó, `/opt/barrio/node` no existe: primero seguir [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 1 a 3.

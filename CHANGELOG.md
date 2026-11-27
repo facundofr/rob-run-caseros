@@ -1,5 +1,17 @@
 # Changelog
 
+## [Sin publicar] Etapa 3: backend en el VPS y contexto para retomar el trabajo
+
+### Agregado
+- Backend instalado en `https://caseros-api.facundofr.com`: certificado de Let's Encrypt con renovación automática, base `barrio` en el PostgreSQL del VPS, servicio `barrio-backend` en `127.0.0.1:3700` y 7777/udp abierto en `ufw`. La instalación no actualizó ni reinició nada de las otras apps del VPS. Falta crear la primera cuenta desde la PC.
+- `AGENTS.md`: con quién se trabaja (una persona que viene del desarrollo web y está aprendiendo desarrollo de juegos), las decisiones tomadas con el documento de cada una y los cuidados en el VPS (la IA no usa `sudo`, logs, `apt`, punteros de LFS).
+- `docs/PLAN.md`: sección "Ahora" con los próximos pasos, motivo del recorte, camino de lanzamiento y riesgos nuevos (que no divierta, competencia, tiempo y VPS compartidos con trabajo para clientes).
+- `docs/ARQUITECTURA.md`: las piezas explicadas desde el desarrollo web, y la escala del servidor de juego por fases.
+- `docs/DESPLIEGUE_VPS.md`: instalación con `sudo` y log, avisos normales, comprobaciones y creación de la primera cuenta. `docs/BACKEND.md`: reglas del registro. `docs/ENTORNOS.md`: grupo `systemd-journal` para ver logs sin `sudo`.
+
+### Corregido
+- `docs/DESPLIEGUE_VPS.md`: el backup de la base y los logs no funcionaban sin una sesión de root.
+
 ## [Sin publicar] Backend listo para el VPS y alcance para una persona
 
 ### Cambiado

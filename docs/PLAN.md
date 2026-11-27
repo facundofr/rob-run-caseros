@@ -4,11 +4,23 @@ Actualizado: 27 de noviembre de 2026. **Única fuente del estado del proyecto**:
 
 **Objetivo del MVP:** jugable por internet en `caseros.facundofr.com`, con 16 jugadores, cuentas de usuario y contraseña, dinero que se conserva entre sesiones y el loop completo: vecino → pasamontañas → robo → escape por una salida del barrio → venta, contra policías jugadores. Las reglas están en [DISENO_JUEGO.md](DISENO_JUEGO.md).
 
-## Equipo y estimación
+## Ahora
+
+Lo próximo, en orden. **Actualizar esta sección al terminar cada paso**: es lo primero que lee quien retoma el trabajo.
+
+| Próximo paso | Quién y dónde | Cómo |
+| --- | --- | --- |
+| Crear la primera cuenta desde la PC (cierra la etapa 3) | El usuario, en la PC | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 3 |
+| Probar el loop con 3 jugadores en el editor y corregir lo que falle (etapa 4) | El usuario con Claude Code, en la PC | [PRUEBAS.md](PRUEBAS.md) |
+| Preparar la etapa 5: confirmar el disco libre que pide [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) para compilar el motor, compilarlo desde el código fuente y abrir 7777/UDP en el firewall de hPanel (en `ufw` ya está abierto) | El usuario, en la PC y en hPanel | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 2 y 5.1 |
+
+## Equipo, alcance y estimación
 
 - **Equipo:** 1 persona a tiempo parcial (experiencia web, aprendiendo Unreal), que hace la programación y el arte.
 - **Alcance para una persona:** el MVP es lo que ya está escrito más policías bot, gráficos en bajo y roles que se distinguen a simple vista (etapa 7). Moto, inventario, ganzúa y ventanas, recuperar contraseña por email y login con Steam pasan a después de la alpha (etapa 10). Con dos personas, el MVP anterior se estimaba en 16 a 24 meses a tiempo parcial.
+- **Por qué ese recorte:** la moto sola puede llevar meses (los vehículos en red son de lo más difícil de Unreal), y lo que más riesgo tiene no es técnico: que el loop divierta y juntar gente a la misma hora (ver "Riesgos abiertos").
 - **Estimación (gruesa, a tiempo parcial):** prueba online con amigos en 1 a 2 meses; alpha abierta chica en 3 a 6 meses en total. Se rehace después de la prueba con amigos.
+- **Lanzamiento:** prueba con 4 a 8 amigos (el cliente en un zip) → alpha abierta chica (etapa 9) → Steam cuando haya comunidad: primero Playtest y después Early Access. Nada de infraestructura paga hasta tener jugadores.
 - **Por eso existe el MVP 0** (etapas 1 a 5): validar con amigos si el loop divierte antes de invertir en arte y en sistemas grandes.
 - **Fuera del MVP:** clanes, territorios, construcción de bases, mercado entre jugadores, lavado de dinero, ciclos de reinicio del servidor. Se evalúan con jugadores reales.
 - **Costos conocidos:** VPS propio (ya disponible) y Steam Direct (100 USD por juego, cuando se publique).
@@ -20,7 +32,7 @@ Actualizado: 27 de noviembre de 2026. **Única fuente del estado del proyecto**:
 | 0 | Arquitectura y plan | Hecho | [ARQUITECTURA.md](ARQUITECTURA.md) |
 | 1 | MVP 0 en Unreal: personaje, barrio gris, robos, alarmas, policía, cárcel, pistola | **Compila, sin probar** | — |
 | 2 | Backend: cuentas (usuario y contraseña), economía con ledger, lista de servidores | **Hecho y probado** (33 pruebas) | [BACKEND.md](BACKEND.md) |
-| 3 | Backend en el VPS con HTTPS | DNS creado y scripts ajustados a este VPS (puerto 3700), **sin ejecutar** | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 1 a 4 |
+| 3 | Backend en el VPS con HTTPS | **Instalado y verificado** el 27/11/2026: HTTPS con Let's Encrypt, base `barrio` y servicio en `127.0.0.1:3700`; las otras apps del VPS no se reiniciaron. Falta crear la primera cuenta desde la PC | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 1 a 4 |
 | 4 | Compilar y probar el juego en la PC de desarrollo | **Compila** con Unreal 5.8.4 (sin errores ni advertencias) y el mapa v5 está armado ([MAPA.md](MAPA.md)). Falta probar con 3 jugadores. Bloquea todo lo de Unreal | [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) y [PRUEBAS.md](PRUEBAS.md) |
 | 5 | Servidor de juego en el VPS | Guía lista, depende de 4 | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 5 |
 | 6 | Unreal conectado al backend: pantalla de login, sesión verificada, dinero guardado | **Compila, sin probar** | — |
@@ -48,10 +60,13 @@ Actualizado: 27 de noviembre de 2026. **Única fuente del estado del proyecto**:
 | Riesgo | Mitigación |
 | --- | --- |
 | Errores de comportamiento en el código de Unreal (compila, pero nunca se probó) | Probar con las listas de [PRUEBAS.md](PRUEBAS.md) antes de escribir más código |
+| Que el loop no divierta | La prueba con amigos de la etapa 5 va antes de agregar sistemas: si no divierte, se cambia el diseño antes de seguir |
 | Alcance demasiado grande para una persona | MVP recortado (etapa 7); lo demás, después de la alpha (etapa 10) |
+| Competencia: juegos gratuitos del género hechos por estudios grandes | Identidad local (Caseros, el conurbano, en castellano) y salas chicas donde uno se cruza con la misma gente |
+| El tiempo y el VPS se comparten con trabajo para clientes | `MemoryMax`, servidor de juego prendido solo para probar y nada de infraestructura paga hasta tener jugadores |
 | El KVM 2 no alcanza para el backend y el juego con 16 jugadores | Medir en la etapa 5. El servidor de juego tiene `MemoryMax=3G` para no afectar a las otras apps. Si no alcanza, separar el servidor de juego |
 | El VPS ya tiene otros servicios en producción | El script de instalación convive con ellos y no los modifica ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md)) |
-| Vehículos en red con tirones | Probarlos aislados antes de integrarlos (etapa 7) |
+| Vehículos en red con tirones | Probarlos aislados antes de integrarlos (etapa 10) |
 | Pocos jugadores conectados | Bots policía (etapa 7), servidores siempre abiertos y noches de juego en horario fijo |
 | Jugadores con PCs comunes (el juego usa ray tracing por hardware) | Gráficos en bajo (etapa 7) |
 | El rol de policía aburre | Recompensas y progresión propias; se mide en la alpha |

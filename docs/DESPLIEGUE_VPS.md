@@ -50,11 +50,11 @@ ss -tlnp | grep -E ':80 |:443 |:3700 '    # puertos ocupados
 
 ## 3. Instalar y levantar el backend (una sola vez)
 
-Por SSH, como root:
+Por SSH, con tu usuario y `sudo` (o como root, sin el `sudo`). Con `tee`, la salida queda guardada en `~/barrio-setup.log` para revisarla después; no incluye secretos:
 
 ```bash
-git clone https://github.com/facundofr/rob-run-caseros.git /opt/barrio/repo
-bash /opt/barrio/repo/infra/vps/setup-vps.sh
+sudo git clone https://github.com/facundofr/rob-run-caseros.git /opt/barrio/repo
+sudo bash /opt/barrio/repo/infra/vps/setup-vps.sh 2>&1 | tee ~/barrio-setup.log
 ```
 
 Variables opcionales, antes del `bash`: `API_DOMAIN`, `GAME_DOMAIN`, `BACKEND_PORT` (por defecto 3700) y `CERTBOT_EMAIL`.
@@ -66,6 +66,15 @@ El script [setup-vps.sh](../infra/vps/setup-vps.sh):
 - Si `ufw` está activo, agrega los puertos. Si está apagado, no lo activa, para no cortar otros servicios.
 - Se puede volver a ejecutar sin perder datos ni secretos.
 
+Tarda unos minutos y termina con `{"status":"ok"}` y `Listo.`. Dos avisos son normales: `The home directory /opt/barrio already exists` (el repo se clona antes de que exista el usuario `barrio`) y la lista de paquetes que apt "ya no necesita" (no hace falta `apt autoremove`).
+
+**Comprobar en el VPS** (sin `sudo`):
+
+```bash
+systemctl is-active barrio-backend    # active
+ss -tln '( sport = :3700 )'           # una sola línea, con 127.0.0.1:3700: no se expone a internet
+```
+
 **Comprobar desde la PC:**
 
 ```bash
@@ -73,7 +82,13 @@ curl https://caseros-api.facundofr.com/health       # {"status":"ok"}
 curl https://caseros-api.facundofr.com/v1/servers   # {"servers":[],"recommended":null}
 ```
 
-Para probar el registro de una cuenta, ver `POST /v1/auth/register` en [BACKEND.md](BACKEND.md).
+**Crear la primera cuenta** (cierra la etapa 3), desde PowerShell en la PC. Las reglas del usuario y la contraseña están en [BACKEND.md](BACKEND.md):
+
+```powershell
+Invoke-RestMethod -Method Post -Uri https://caseros-api.facundofr.com/v1/auth/register -ContentType "application/json" -Body '{"username":"TU_USUARIO","password":"UNA_CLAVE_LARGA"}'
+```
+
+La respuesta trae un `token`. El login se prueba igual, con `/v1/auth/login`.
 
 ## 4. Actualizar el backend
 
@@ -138,10 +153,10 @@ Con un cliente empaquetado en **Development**: al abrir `Barrio.exe` aparece la 
 | Para | Comando |
 | --- | --- |
 | Estado de los servicios | `systemctl status barrio-backend barrio-server postgresql` |
-| Log del backend | `journalctl -u barrio-backend -f` |
-| Log del servidor de juego | `journalctl -u barrio-server -f` |
-| Clave del servidor de juego | `grep SERVER_API_KEY /etc/barrio/backend.env` |
-| Backup de la base | `sudo -u postgres pg_dump barrio > /root/barrio-$(date +%F).sql` |
+| Log del backend | `sudo journalctl -u barrio-backend -f` (sin `sudo` con el grupo `systemd-journal`: [ENTORNOS.md](ENTORNOS.md), 3.2) |
+| Log del servidor de juego | `sudo journalctl -u barrio-server -f` |
+| Clave del servidor de juego | `sudo grep SERVER_API_KEY /etc/barrio/backend.env` |
+| Backup de la base (tiene hashes y emails: queda solo para root) | `sudo -u postgres pg_dump barrio \| sudo tee /root/barrio-$(date +%F).sql > /dev/null` |
 
 ## Problemas comunes
 

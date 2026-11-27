@@ -27,6 +27,25 @@ flowchart LR
 
 El backend y el servidor de juego corren en el mismo VPS. El servidor de juego habla con el backend por `127.0.0.1`, sin salir a internet.
 
+### Para quien viene del desarrollo web
+
+Del mismo proyecto de Unreal salen tres programas distintos, y el backend va aparte:
+
+| Pieza | Qué es | Dónde corre | Equivalente en web |
+| --- | --- | --- | --- |
+| Editor (`BarrioEditor`) | Donde se arma el juego: mapa, Blueprints, pruebas | La PC con Windows (necesita placa de video) | VS Code más `npm run dev` |
+| Cliente (`Barrio.exe`) | El juego que se baja cada jugador: dibuja la imagen y manda teclado y mouse | La PC de cada jugador | El frontend, pero instalado en la PC del jugador en vez de servido por Nginx |
+| Servidor dedicado (`BarrioServer`) | El juego sin gráficos: tiene la partida en memoria, decide todo y les manda el estado a los jugadores unas 30 veces por segundo | El VPS (Linux) | Un servidor de WebSockets con el estado en memoria, pero por UDP |
+| Backend + PostgreSQL | Cuentas y dinero: lo que sobrevive a la desconexión | El VPS | Una API como cualquier otra |
+
+Lo que cambia respecto de una app web:
+- **El juego no pasa por Nginx.** Nginx solo atiende el HTTPS del backend. Los jugadores se conectan directo al puerto 7777/UDP del VPS, que tiene que estar abierto en `ufw` y en el firewall del panel de Hostinger.
+- **Decide el servidor** (sección 1): el cliente solo pide. Así nadie hace trampa modificando su propio cliente.
+- **El build se hace en la PC.** En Unreal se llama *empaquetar*: compila el código y *cocina* los assets para cada plataforma. Necesita una PC potente con Windows, y la carpeta que sale se sube al VPS con `scp`, como subir un `dist/` a mano ([ENTORNOS.md](ENTORNOS.md)).
+- **El VPS no tiene el arte.** En su copia del repo, los `.uasset` son punteros de Git LFS de unos 130 bytes. El servidor empaquetado ya lleva adentro lo que usa.
+- **Cliente y servidor van juntos:** mismo commit y mismo motor, o el servidor rechaza al jugador ("version mismatch", [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), 5.2).
+- **Salas de 16, no un MMO.** Un mundo con miles de jugadores necesita tecnología de servidores propia, de estudio grande. Para tener más gente se abren más salas iguales (sección 6).
+
 ## 3. Stack
 
 | Capa | Tecnología | Por qué | Estado |
@@ -83,7 +102,15 @@ Migraciones SQL versionadas en `backend/migrations/`; se aplican solas al arranc
 - Cada instancia es el mismo barrio, siempre abierto, con 16 cupos. El personaje vive en el backend, así que se puede jugar en cualquier instancia.
 - Al arrancar, la instancia se registra en el backend y manda un heartbeat cada 15 s. Si deja de mandarlo, sale de la lista.
 - El backend recomienda la instancia con más gente que todavía tenga lugar, para concentrar jugadores.
-- **Escala:** un KVM 2 aloja 1 instancia más el backend. Para más instancias: otro VPS, u orquestadores como Agones o Edgegap, sin cambiar el código del juego.
+**Escala, por fases.** El código del juego no cambia entre una fase y otra. Cómo llevar el servidor de juego a otro VPS: [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 5.3.
+
+| Fase | Dónde corre el servidor de juego | Cuándo pasar a la siguiente |
+| --- | --- | --- |
+| Desarrollo y prueba con amigos | El VPS del backend (Hostinger KVM 2, compartido con otras apps), prendido solo para probar | Si pasa de unos 2 GB de RAM, si hay tirones o si hay seguido más de una sala llena |
+| Alpha | Un VPS chico solo para el juego, en São Paulo. El backend se queda donde está | Cuando haga falta abrir y cerrar salas según la cantidad de jugadores |
+| Lanzamiento en Steam | Un orquestador, como Agones o Edgegap | — |
+
+Consumo estimado de una sala de 16, que se mide en la etapa 5: entre 0,5 y 2 GB de RAM, cerca de un núcleo y pocos Mbps. Desde Buenos Aires hasta el VPS en Brasil hay unos 30 a 40 ms, suficiente para este juego.
 
 ## 7. Estructura del código de Unreal
 
