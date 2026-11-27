@@ -48,3 +48,14 @@ game/Scripts/**/*.bak
 
 # Visual Studio (formato nuevo de solución)
 game/*.slnx
+
+# Assets de Fab (Licencia estándar de Fab: se usan en el juego pero NO se redistribuyen en este repo).
+# Cada quien los agrega gratis desde Fab (ver docs/FAB.md); sin ellos build_barrio usa los generados.
+game/Content/EuropeanHornbeam/
+game/Content/MSPresets/
+game/Content/VehicleVarietyPack/
+game/Content/Vehicle_Variety_Pack/
+game/Content/VehicleVarPack/
+
+# Capturas que deja Claude (locales)
+Claude outputs/

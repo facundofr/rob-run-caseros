@@ -35,10 +35,11 @@ import math
 import random
 import traceback
 import importlib
+import unreal
 
 PARTS = ['calles', 'manzana_0_-1', 'manzana_1_-1', 'manzana_2_-1', 'manzana_0_0', 'manzana_0_1', 'manzana_1_0',
          'manzana_1_1', 'manzana_2_0', 'manzana_2_1', 'vias', 'afuera', 'props', 'gameplay']
-MODULES = ['barrio_kit', 'barrio_layout', 'barrio_props', 'barrio_geo', 'barrio_edificios']
+MODULES = ['barrio_kit', 'barrio_layout', 'barrio_props', 'barrio_geo', 'barrio_edificios', 'barrio_fab']
 GP = 'Barrio/Gameplay'
 PART_FOLDERS = {
     'calles': ['Barrio/Calles'],
@@ -190,8 +191,50 @@ def tree(c, kind, seed, pelado=False, big=False):
     return cached(c, key, c.P.build_arbol2, kind, seed, pelado, big)
 
 
+USE_FAB_TREES = True      # árboles con hoja de Fab (Megascans) si están en el proyecto; si no, los generados
+USE_FAB_CARS = True       # autos de Fab (Vehicle Variety Pack) si están; si no, los generados
+
+
+def _tronco_col(c, label, loc, radio, alto, folder):
+    """Colisionador invisible de tronco para los árboles de Fab (la malla de follaje va sin colisión)."""
+    cyl = unreal.EditorAssetLibrary.load_asset('/Engine/BasicShapes/Cylinder.Cylinder')
+    if cyl is None:
+        return
+    s_ = radio / 50.0
+    acts = put(c, [cyl], label, (loc[0], loc[1], loc[2] + alto * 0.5), 0.0, folder, scale=(s_, s_, alto / 100.0),
+               shadow=False)
+    for a in acts or []:
+        try:
+            a.set_actor_hidden_in_game(True)
+            comp = a.get_component_by_class(unreal.StaticMeshComponent)
+            comp.set_visibility(False)
+            comp.set_editor_property('affect_distance_field_lighting', False)
+            comp.set_editor_property('visible_in_ray_tracing', False)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def spawn_trees(c, lst, folder, prefix):
+    fab = c.FAB.trees() if (USE_FAB_TREES and getattr(c, 'FAB', None)) else {}
     for i, t in enumerate(lst):
+        pool = (fab.get('plaza') if t.get('big') else fab.get('calle')) if fab else None
+        if pool and not t.get('pelado', False):
+            rr = random.Random(9173 + i * 31 + int(t['pos'][0]) + int(t['pos'][1]))
+            sm, h, z0, w, _ = pool[rr.randrange(len(pool))]
+            if t.get('big'):
+                target, wmax = rr.uniform(1300.0, 1600.0), 1500.0
+            else:
+                target, wmax = rr.uniform(950.0, 1150.0), 720.0   # copa que no se meta en las fachadas
+            s_ = min(target / max(h, 1.0), wmax / max(w, 1.0))
+            s_ = max(s_, 0.55)
+            z = t['pos'][2] if len(t['pos']) > 2 else 0.0
+            loc = (t['pos'][0], t['pos'][1], z - z0 * s_)
+            put(c, [sm], '%s_%d' % (prefix, i), loc, rr.uniform(0.0, 360.0), folder, collision=False,
+                scale=(s_, s_, s_))
+            _tronco_col(c, '%s_%d_Tronco' % (prefix, i), (t['pos'][0], t['pos'][1], z), 22.0 * s_ + 6.0, 320.0,
+                        folder)
+            c.count['arboles_fab'] = c.count.get('arboles_fab', 0) + 1
+            continue
         sms = tree(c, t['kind'], t.get('seed', 0), t.get('pelado', False), t.get('big', False))
         put(c, sms, '%s_%d' % (prefix, i), t['pos'], t.get('yaw', 0.0), folder)
         c.count['arboles'] = c.count.get('arboles', 0) + 1
@@ -661,7 +704,21 @@ def part_props(c):
             put(c, moto, 'Moto_%d' % i, q['pos'], rot=k.R(roll=-6.0, yaw=q['yaw']), folder=FA, swaps=sw)
             c.count['motos'] = c.count.get('motos', 0) + 1
     # ---- autos estacionados (genéricos), color por instancia
+    fab_cars = c.FAB.cars() if (USE_FAB_CARS and getattr(c, 'FAB', None)) else []
     for i, q in enumerate(plan['cars']):
+        rr = random.Random(7411 + i * 13)
+        if fab_cars and q['type'] != 'patrullero' and rr.random() < 0.6:
+            obj, Lc, path, sk = fab_cars[rr.randrange(len(fab_cars))]
+            label = 'AutoFab_%d' % i
+            if sk:
+                a = c.k.spawn_class(unreal.SkeletalMeshActor, label, (q['pos'][0], q['pos'][1], 3.0),
+                                    c.k.R(yaw=q['yaw']), FA)
+                if a is not None:
+                    a.get_component_by_class(unreal.SkeletalMeshComponent).set_skinned_asset_and_update(obj)
+            else:
+                put(c, [obj], label, (q['pos'][0], q['pos'][1], 3.0), q['yaw'], FA)
+            c.count['autos_fab'] = c.count.get('autos_fab', 0) + 1
+            continue
         sms = cached(c, 'Auto_' + q['type'], P.build_auto, q['type'])
         sw = {'MI_Auto_Blanco': q['color']} if q['color'] != 'MI_Auto_Blanco' else None
         put(c, sms, 'Auto_%s_%d' % (q['type'], i), (q['pos'][0], q['pos'][1], 3.0), q['yaw'], FA, swaps=sw)
@@ -1055,6 +1112,9 @@ def main():
     c = Ctx()
     c.k, c.L, c.P, c.G, c.E = (mods['barrio_kit'], mods['barrio_layout'], mods['barrio_props'], mods['barrio_geo'],
                                mods['barrio_edificios'])
+    c.FAB = mods.get('barrio_fab')
+    if c.FAB is not None:
+        c.FAB.reset()
     mods.clear()
     k = c.k
     c.cache, c.variants, c.count, c.afuera_lots, c.plan = {}, {}, {}, [], None
