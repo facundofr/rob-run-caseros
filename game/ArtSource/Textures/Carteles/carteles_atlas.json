@@ -1,0 +1,800 @@
+{
+ "_doc": "UV del cartel = AtlasRect.xy + UV0 * AtlasRect.zw (V hacia abajo, origen arriba-izquierda). rect_px = [x, y, w, h] en el atlas; aspecto = w/h de la placa a modelar.",
+ "atlas": {
+  "Calle": {
+   "size": [
+    2048,
+    2048
+   ],
+   "alpha": false,
+   "BC": "T_Carteles_Calle_BC",
+   "ORM": "T_Carteles_Calle_ORM"
+  },
+  "Comercio": {
+   "size": [
+    2048,
+    4096
+   ],
+   "alpha": false,
+   "BC": "T_Carteles_Comercio_BC",
+   "ORM": "T_Carteles_Comercio_ORM"
+  },
+  "Varios": {
+   "size": [
+    2048,
+    2048
+   ],
+   "alpha": true,
+   "BC": "T_Carteles_Varios_BC",
+   "ORM": "T_Carteles_Varios_ORM"
+  }
+ },
+ "normal": "T_Carteles_N",
+ "carteles": {
+  "MI_CartelCalle_ValentinGomez": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    0,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Urquiza": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    0,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.0,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_AvSanMartin": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    256,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.125,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Ferreyra": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    256,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.125,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Alberdi": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    512,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.25,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Nicaragua": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    512,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.25,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Sabattini": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    768,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.375,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Fischetti": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    768,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.375,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_MarianoMoreno": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    1024,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.5,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_EstebanMerlo": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    1024,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.5,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Bonifacini": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    1280,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.625,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Puan": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    1280,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.625,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Rauch": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    1536,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.75,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_MarcoPolo": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    1536,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.75,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Espana": {
+   "atlas": "Calle",
+   "rect_px": [
+    0,
+    1792,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.875,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_CartelCalle_Constitucion": {
+   "atlas": "Calle",
+   "rect_px": [
+    1024,
+    1792,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.875,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_Comercio_AlmacenDonTito": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    0,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_Kiosco24hs": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    256,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_VerduleriaLaEsquina": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    512,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.125,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_FerreteriaElTornillo": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    768,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.1875,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_PizzeriaLoDeCacho": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    1024,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.25,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_FarmaciaDelBarrio": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    1280,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.3125,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_CarniceriaLosHermanos": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    1536,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_PanaderiaLaEspiga": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    1792,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.4375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_PeluqueriaEstilo": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    2048,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.5,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_RotiseriaDonaRosa": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    2304,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.5625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_LibreriaElLapiz": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    2560,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.625,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_GomeriaElRayo": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    2816,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.6875,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_LavaderoBurbujas": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    3072,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.75,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_PolirrubroLosChicos": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    3328,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.8125,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_DespensaMary": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    3584,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.875,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Comercio_BazarElSol": {
+   "atlas": "Comercio",
+   "rect_px": [
+    0,
+    3840,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.9375,
+    1.0,
+    0.0625
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Cartel_Comisaria": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    0,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    1.0,
+    0.125
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Cartel_Estacion": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    256,
+    2048,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.125,
+    1.0,
+    0.125
+   ],
+   "aspecto": 8.0,
+   "mascara": false
+  },
+  "MI_Cartel_Salida": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    512,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.25,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_Cartel_Salida_Der": {
+   "atlas": "Varios",
+   "rect_px": [
+    1024,
+    512,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.25,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_Cartel_Salida_Izq": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    768,
+    1024,
+    256
+   ],
+   "uv": [
+    0.0,
+    0.375,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_Cartel_NoEstacionar": {
+   "atlas": "Varios",
+   "rect_px": [
+    1024,
+    768,
+    1024,
+    256
+   ],
+   "uv": [
+    0.5,
+    0.375,
+    0.5,
+    0.125
+   ],
+   "aspecto": 4.0,
+   "mascara": false
+  },
+  "MI_Bandera_Celeste": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    1024,
+    1024,
+    512
+   ],
+   "uv": [
+    0.0,
+    0.5,
+    0.5,
+    0.25
+   ],
+   "aspecto": 2.0,
+   "mascara": false
+  },
+  "MI_Afiche_SeVende": {
+   "atlas": "Varios",
+   "rect_px": [
+    1024,
+    1024,
+    512,
+    512
+   ],
+   "uv": [
+    0.5,
+    0.5,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": false
+  },
+  "MI_Afiche_Alquilo": {
+   "atlas": "Varios",
+   "rect_px": [
+    1536,
+    1024,
+    512,
+    512
+   ],
+   "uv": [
+    0.75,
+    0.5,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": false
+  },
+  "MI_Pintada_1": {
+   "atlas": "Varios",
+   "rect_px": [
+    0,
+    1536,
+    512,
+    512
+   ],
+   "uv": [
+    0.0,
+    0.75,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": true
+  },
+  "MI_Pintada_2": {
+   "atlas": "Varios",
+   "rect_px": [
+    512,
+    1536,
+    512,
+    512
+   ],
+   "uv": [
+    0.25,
+    0.75,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": true
+  },
+  "MI_Pintada_3": {
+   "atlas": "Varios",
+   "rect_px": [
+    1024,
+    1536,
+    512,
+    512
+   ],
+   "uv": [
+    0.5,
+    0.75,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": true
+  },
+  "MI_Pintada_4": {
+   "atlas": "Varios",
+   "rect_px": [
+    1536,
+    1536,
+    512,
+    512
+   ],
+   "uv": [
+    0.75,
+    0.75,
+    0.25,
+    0.25
+   ],
+   "aspecto": 1.0,
+   "mascara": true
+  }
+ }
+}

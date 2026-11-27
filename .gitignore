@@ -32,3 +32,19 @@ Thumbs.db
 # Referencias de mercado: solo locales, no se publican
 docs/referencias/*
 !docs/referencias/README.md
+
+# Copia de respaldo del proyecto al migrar a UE 5.8 (local, no se publica)
+game 5.8/
+
+# Capturas de Street View de referencia (solo locales, no se publican)
+salida-devoto/
+
+# Texturas fuente generadas por game/Scripts/arte/gen_textures.py (se regeneran; las importadas están en Content)
+game/ArtSource/**/*.png
+
+# Python y respaldos de los scripts de arte
+game/Scripts/**/__pycache__/
+game/Scripts/**/*.bak
+
+# Visual Studio (formato nuevo de solución)
+game/*.slnx

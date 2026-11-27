@@ -14,6 +14,7 @@ Cada tema tiene un solo archivo.
 | [docs/PLAN.md](docs/PLAN.md) | **Estado del proyecto**, etapas, criterios de cierre, riesgos | Todo el equipo |
 | [docs/ENTORNOS.md](docs/ENTORNOS.md) | Cómo trabajar: qué se hace en la PC y qué en el VPS, VS Code Remote-SSH, Claude Code en el VPS | Programación |
 | [docs/DISENO_JUEGO.md](docs/DISENO_JUEGO.md) | Reglas del juego: roles, robo, captura, recompensas, ambientación | Todo el equipo |
+| [docs/MAPA.md](docs/MAPA.md) | Diseño del mapa jugable: trazado, salidas, zonas, coberturas, hitos, navegación de bots | Todo el equipo |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Cómo está construido y por qué: componentes, stack, módulos, base de datos | Programación |
 | [docs/GUIA_DESARROLLO.md](docs/GUIA_DESARROLLO.md) | PC de desarrollo: instalar, compilar, armar el mapa, controles | Programación |
 | [docs/PRUEBAS.md](docs/PRUEBAS.md) | Listas de pruebas por etapa | Programación y testers |
