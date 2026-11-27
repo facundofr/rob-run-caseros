@@ -3,7 +3,9 @@
 #
 # Pensado para convivir con otros servicios del mismo VPS:
 # - Usa su propio Node.js en /opt/barrio/node (no toca el Node del sistema).
-# - El backend escucha en 127.0.0.1:${BACKEND_PORT} (3100 por defecto) y falla si el puerto está ocupado.
+# - No actualiza ni reinicia paquetes que ya estén instalados (por ejemplo, el PostgreSQL de otras apps).
+# - El backend escucha en 127.0.0.1:${BACKEND_PORT} (3700 por defecto; el 3100 lo usa otra app del VPS)
+#   y falla si el puerto está ocupado.
 # - Si ya hay Nginx o Caddy, agrega un sitio nuevo; nunca reemplaza la configuración existente.
 # - No activa el firewall si está apagado (solo agrega reglas).
 #
@@ -16,7 +18,7 @@ set -euo pipefail
 
 API_DOMAIN="${API_DOMAIN:-caseros-api.facundofr.com}"
 GAME_DOMAIN="${GAME_DOMAIN:-caseros.facundofr.com}"
-BACKEND_PORT="${BACKEND_PORT:-3100}"
+BACKEND_PORT="${BACKEND_PORT:-3700}"
 NODE_VERSION="24.11.1"
 REPO_DIR="/opt/barrio/repo"
 NODE_DIR="/opt/barrio/node"
@@ -30,9 +32,13 @@ fi
 
 is_active() { systemctl is-active --quiet "$1" 2>/dev/null; }
 
+# Sin preguntas de apt ni de needrestart, y sin reiniciar servicios de otras apps: needrestart solo lista.
+export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l
+
 echo "==> Paquetes base"
 apt-get update
-apt-get install -y curl ca-certificates gnupg git openssl xz-utils postgresql
+# --no-upgrade: lo que ya está instalado queda en su versión (actualizarlo reiniciaría servicios en producción).
+apt-get install -y --no-upgrade curl ca-certificates gnupg git openssl xz-utils postgresql
 
 echo "==> Usuario y carpetas"
 id barrio >/dev/null 2>&1 || adduser --system --group --home /opt/barrio --shell /usr/sbin/nologin barrio
@@ -112,14 +118,19 @@ systemctl restart barrio-backend
 echo "==> HTTPS para ${API_DOMAIN} -> 127.0.0.1:${BACKEND_PORT}"
 if is_active nginx; then
   echo "    Nginx detectado: se agrega un sitio y el certificado con certbot."
-  apt-get install -y certbot python3-certbot-nginx
+  apt-get install -y --no-upgrade certbot python3-certbot-nginx
   sed -e "s/__API_DOMAIN__/${API_DOMAIN}/g" -e "s/__BACKEND_PORT__/${BACKEND_PORT}/g" \
     "$REPO_DIR/infra/vps/backend/nginx-barrio-api.conf" > /etc/nginx/sites-available/barrio-api.conf
   ln -sf /etc/nginx/sites-available/barrio-api.conf /etc/nginx/sites-enabled/barrio-api.conf
   nginx -t
   systemctl reload nginx
-  certbot --nginx -d "$API_DOMAIN" --non-interactive --agree-tos --redirect \
-    ${CERTBOT_EMAIL:+--email "$CERTBOT_EMAIL"} ${CERTBOT_EMAIL:---register-unsafely-without-email}
+  # Con email, la cuenta de Let's Encrypt avisa vencimientos; sin email, se registra sin él.
+  if [[ -n "${CERTBOT_EMAIL:-}" ]]; then
+    CERTBOT_ACCOUNT=(--email "$CERTBOT_EMAIL")
+  else
+    CERTBOT_ACCOUNT=(--register-unsafely-without-email)
+  fi
+  certbot --nginx -d "$API_DOMAIN" --non-interactive --agree-tos --redirect "${CERTBOT_ACCOUNT[@]}"
 elif is_active apache2; then
   echo "Apache ocupa los puertos 80/443. Este script no configura Apache: hay que agregar un proxy a" >&2
   echo "127.0.0.1:${BACKEND_PORT} para ${API_DOMAIN} a mano. El backend ya está corriendo." >&2
@@ -128,7 +139,7 @@ else
   CADDY_WAS_INSTALLED=true
   if ! command -v caddy >/dev/null; then
     CADDY_WAS_INSTALLED=false
-    apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+    apt-get install -y --no-upgrade debian-keyring debian-archive-keyring apt-transport-https
     curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
     curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt > /etc/apt/sources.list.d/caddy-stable.list
     apt-get update

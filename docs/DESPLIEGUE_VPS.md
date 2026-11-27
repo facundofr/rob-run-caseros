@@ -4,17 +4,17 @@ Guía única para poner Barrio en el VPS: Hostinger KVM 2 en Brasil, con Ubuntu 
 
 | Servicio | Dirección | Detalle |
 | --- | --- | --- |
-| Backend (API) | `https://caseros-api.facundofr.com` | Node.js detrás de Nginx o Caddy, con HTTPS. Escucha solo en `127.0.0.1:3100` |
+| Backend (API) | `https://caseros-api.facundofr.com` | Node.js detrás de Nginx o Caddy, con HTTPS. Escucha solo en `127.0.0.1:3700` (el 3100 lo usa otra app del VPS) |
 | Base de datos | `127.0.0.1:5432` | PostgreSQL. No se expone a internet |
 | Servidor de juego | `caseros.facundofr.com:7777` (UDP) | Unreal, servidor dedicado de 16 jugadores |
 
 La página principal `facundofr.com` y los demás servicios del VPS (por ejemplo, lo que ya responde en `api.facundofr.com`) **no se tocan**: Barrio usa subdominios propios.
 
-**Capacidad del KVM 2** (2 vCPU y 8 GB de RAM, a confirmar en el panel): alcanza para el backend, la base y 1 instancia de 16 jugadores durante el desarrollo y la alpha. El consumo real se mide en la etapa 5.
+**Capacidad del KVM 2** (2 vCPU y 8 GB de RAM, de los que las otras apps del VPS ya usan unos 4 GB): alcanza para el backend, la base y 1 instancia de 16 jugadores durante el desarrollo y la alpha. El consumo real se mide en la etapa 5.
 
 ## 1. DNS
 
-En el panel donde está el dominio, crear dos registros **A** con la IP pública del VPS:
+El DNS de `facundofr.com` está en Hostinger (**hPanel → Dominios → facundofr.com → DNS**). Crear dos registros **A** con la IP pública del VPS:
 
 | Nombre | Tipo | Valor |
 | --- | --- | --- |
@@ -37,13 +37,15 @@ El VPS ya tiene Ubuntu con lo necesario para aplicaciones React. **No hay que in
 | `git`, `curl`, `openssl`, `xz-utils` | Bajar el repo, generar secretos, descomprimir Node | `apt` | No |
 | **Servidor de juego de Unreal** | El juego en sí | No se instala: se sube ya compilado desde la PC de desarrollo (sección 5). Es autocontenido y no necesita dependencias extra | No |
 
-**Puertos que tienen que estar abiertos** (en `ufw` si está activo, y en el firewall del panel de Hostinger): **80/tcp** y **443/tcp**, para HTTPS (probablemente ya estén abiertos por las apps React), y **7777/udp**, para el juego.
+**Puertos que tienen que estar abiertos** (en `ufw` si está activo, y en el firewall del panel de Hostinger): **80/tcp** y **443/tcp**, para HTTPS (probablemente ya estén abiertos por las apps React), y **7777/udp**, para el juego. En este VPS `ufw` está activo y el script agrega las reglas; el firewall del panel (**hPanel → VPS → Firewall**) se revisa a mano.
+
+El script no actualiza ni reinicia lo que ya está instalado (`apt-get install --no-upgrade`, y `needrestart` solo lista): el PostgreSQL y el Nginx de las otras apps quedan como están. Nginx solo se recarga, sin cortar los otros sitios.
 
 **Antes de instalar**, conviene revisar qué corre en el VPS:
 
 ```bash
 systemctl is-active nginx caddy apache2   # qué servidor web usa
-ss -tlnp | grep -E ':80 |:443 |:3100 '    # puertos ocupados
+ss -tlnp | grep -E ':80 |:443 |:3700 '    # puertos ocupados
 ```
 
 ## 3. Instalar y levantar el backend (una sola vez)
@@ -55,7 +57,7 @@ git clone https://github.com/facundofr/rob-run-caseros.git /opt/barrio/repo
 bash /opt/barrio/repo/infra/vps/setup-vps.sh
 ```
 
-Variables opcionales, antes del `bash`: `API_DOMAIN`, `GAME_DOMAIN`, `BACKEND_PORT` (por defecto 3100) y `CERTBOT_EMAIL`.
+Variables opcionales, antes del `bash`: `API_DOMAIN`, `GAME_DOMAIN`, `BACKEND_PORT` (por defecto 3700) y `CERTBOT_EMAIL`.
 
 El script [setup-vps.sh](../infra/vps/setup-vps.sh):
 - Instala lo de la tabla de la sección 2.
@@ -102,6 +104,8 @@ El Unreal del Epic Games Launcher no puede generar servidores dedicados.
 
 En el editor: **Platforms → Linux → Build Target: BarrioServer**, configuración **Development** → **Package Project** en `Build/LinuxServer`.
 
+Empaquetar también el cliente (**Platforms → Windows → Build Target: Barrio**, **Development**) con el **mismo motor y desde el mismo commit**. Si cliente y servidor salen de motores o commits distintos, el servidor rechaza la conexión ("version mismatch"). Los paquetes de Fab ([FAB.md](FAB.md)) entran en los dos empaquetados.
+
 ### 5.3 Subir y arrancar
 
 Desde la PC (PowerShell):
@@ -115,11 +119,15 @@ En el VPS:
 ```bash
 chown -R barrio:barrio /opt/barrio/server
 chmod +x /opt/barrio/server/BarrioServer.sh
-systemctl enable --now barrio-server
+systemctl start barrio-server
 journalctl -u barrio-server -f   # tiene que decir que escucha en 7777, cargó L_Greybox y se registró en el backend
 ```
 
+Mientras se desarrolla, el servidor de juego se prende solo para probar (`systemctl start barrio-server` y, al terminar, `systemctl stop barrio-server`). Cuando tenga que quedar siempre abierto (alpha): `systemctl enable --now barrio-server`.
+
 El servicio lee `/etc/barrio/gameserver.env`. Con ese archivo, el servidor se registra en el backend y **exige login**. Sin él, cualquiera con la dirección puede entrar y nada se guarda.
+
+El servicio tiene `MemoryMax=3G`: si el servidor pasa de 3 GB, systemd lo corta y lo reinicia antes de dejar sin memoria a las otras apps del VPS. Si pasa seguido, es momento de llevarlo a un VPS propio: solo cambian `BARRIO_BACKEND_URL` (a `https://caseros-api.facundofr.com`) en `/etc/barrio/gameserver.env` del VPS nuevo y el registro DNS `caseros`.
 
 ### 5.4 Conectarse
 
@@ -140,7 +148,7 @@ Con un cliente empaquetado en **Development**: al abrir `Barrio.exe` aparece la 
 | Síntoma | Causa probable |
 | --- | --- |
 | `curl https://caseros-api...` falla por certificado | El DNS todavía no apunta al VPS, o el puerto 80 está cerrado (Let's Encrypt lo necesita) |
-| El script se detiene con "puerto en uso" | Otro servicio usa el 3100: volver a ejecutar con `BACKEND_PORT=<otro puerto libre>` |
+| El script se detiene con "puerto en uso" | Otro servicio usa el 3700: volver a ejecutar con `BACKEND_PORT=<otro puerto libre>` |
 | Caddy no arranca | Otro servidor web ocupa el 80 o el 443 y no fue detectado: revisar con `ss -tlnp` |
 | El cliente no conecta al juego | Puerto 7777/UDP cerrado en `ufw` o en el firewall del panel de Hostinger |
 | Expulsado al entrar con "La sesión venció" | El token dura 15 minutos: volver a iniciar sesión |

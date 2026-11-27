@@ -1,5 +1,18 @@
 # Changelog
 
+## [Sin publicar] Backend listo para el VPS y alcance para una persona
+
+### Cambiado
+- `setup-vps.sh`: el backend usa el puerto 3700 por defecto (el 3100 lo usa otra app del VPS). No actualiza ni reinicia paquetes que ya estén instalados (`apt-get install --no-upgrade`, `needrestart` solo lista), para no tocar el PostgreSQL ni el Nginx de las otras apps.
+- `barrio-server.service`: `MemoryMax=3G`, para que el servidor de juego no deje sin memoria a las otras apps del VPS.
+- `docs/PLAN.md`: el equipo es una persona. El MVP se recorta a lo ya escrito más policías bot, gráficos en bajo y roles distinguibles a simple vista. Moto, inventario, ganzúa y ventanas, recuperar contraseña por email y login con Steam pasan a después de la alpha (etapa 10). La alpha es abierta y chica.
+- `docs/DESPLIEGUE_VPS.md`: DNS en Hostinger, cliente y servidor empaquetados con el mismo motor, el servidor de juego se prende solo para probar mientras se desarrolla, y cómo separarlo a otro VPS.
+- La copia de trabajo en el VPS pasa a `/var/www/rob-run-caseros/rob-run-caseros`.
+- Estado al día en `README.md`, `AGENTS.md` y `docs/GUIA_DESARROLLO.md`: el juego compila y el mapa v5 está armado; falta probarlo. La regla de `AGENTS.md` pasa a "no escribir más código de Unreal hasta probar el existente".
+
+### Corregido
+- `setup-vps.sh`: con `CERTBOT_EMAIL`, certbot recibía el email dos veces y fallaba.
+
 ## [Sin publicar] Etapa 4: primera compilación
 
 El editor (`BarrioEditor`, Win64, Development) compila sin errores ni advertencias con Unreal Engine 5.8.4 y Visual Studio 2022 (17.14).

@@ -2,7 +2,7 @@
 
 Cómo preparar la PC de desarrollo, compilar el juego y armar el mapa en el editor. Después de esto: [PRUEBAS.md](PRUEBAS.md). Para el servidor en el VPS: [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md).
 
-> **El código de Unreal nunca se compiló.** Es esperable que la primera compilación dé errores. Corregirlos es la primera tarea (etapa 4 de [PLAN.md](PLAN.md)).
+> **El código compila** con Unreal Engine 5.8.4 y Visual Studio 2022, pero **nunca se probó**: es esperable encontrar errores al jugar. Probarlo es la tarea actual (etapa 4 de [PLAN.md](PLAN.md)).
 
 ## 1. Requisitos
 

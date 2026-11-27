@@ -2,7 +2,7 @@
 
 Juego multijugador de mundo abierto en tercera persona, ambientado en Caseros (Zona Oeste del conurbano bonaerense). Los jugadores son vecinos, ladrones o policías en servidores de 16 jugadores. Unreal Engine 5, servidor dedicado autoritativo y backend propio.
 
-**Estado:** el backend funciona y está probado; el código de Unreal está escrito pero todavía no se compiló. Detalle en [docs/PLAN.md](docs/PLAN.md).
+**Estado:** el backend funciona y está probado; el juego compila con Unreal Engine 5.8 y tiene el mapa armado, pero todavía no se probó con varios jugadores. Detalle en [docs/PLAN.md](docs/PLAN.md).
 
 ## Documentación
 

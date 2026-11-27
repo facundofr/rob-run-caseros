@@ -13,6 +13,9 @@ EnvironmentFile=-/etc/barrio/gameserver.env
 ExecStart=/opt/barrio/server/BarrioServer.sh -log -port=7777
 Restart=on-failure
 RestartSec=10
+# El VPS tiene otras apps en producción: si el servidor de juego pasa de 3 GB, systemd lo corta y lo
+# reinicia antes de dejarlas sin memoria. Si pasa seguido, es hora de llevarlo a un VPS propio.
+MemoryMax=3G
 
 [Install]
 WantedBy=multi-user.target

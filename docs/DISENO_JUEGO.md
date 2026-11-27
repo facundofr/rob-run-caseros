@@ -1,6 +1,6 @@
 # Diseño del juego
 
-Actualizado: 24 de noviembre de 2026. **Fuente de verdad de las reglas**: el código se ajusta a este documento. Qué está implementado: sección 10 y [PLAN.md](PLAN.md).
+Actualizado: 27 de noviembre de 2026. **Fuente de verdad de las reglas**: el código se ajusta a este documento. Qué está implementado: sección 10 y [PLAN.md](PLAN.md).
 
 Barrio toma mecánicas del género *sandbox criminal* (roles que se eligen al entrar, robos, policías jugadores, arresto, coima) y las adapta a **su propia identidad**: Caseros, servidores de 16 jugadores, nombres y valores propios. No es una copia de otro juego. Las referencias de mercado están en [referencias/](referencias/) y se usan solo como inspiración.
 
@@ -173,7 +173,7 @@ Son dos medidores distintos con propósitos opuestos:
 | Pago de la policía: arresto mucho mayor que abatir, salario al terminar el turno | **MVP**, código escrito |
 | Nivel de búsqueda por violencia, con nivel 3 visible para todos | **MVP**, código escrito |
 | Policías bot de relleno | **MVP completo** |
-| Ganzúa vs. romper ventana | **MVP completo** |
+| Ganzúa vs. romper ventana | Después del MVP (alcance para una persona: [PLAN.md](PLAN.md)) |
 | Liberar a un esposado; coima | Después del MVP |
 | Faltas e infracciones (con vehículos) | Después del MVP |
 | Cortar la luz de la cuadra, golpes grandes con alarma global | Después del MVP |

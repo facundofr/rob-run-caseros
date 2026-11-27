@@ -48,7 +48,7 @@ flowchart LR
 
 | Carpeta | Para qué | Quién la toca |
 | --- | --- | --- |
-| `~/rob-run-caseros` | Copia de trabajo: se edita, se prueba, se hace commit | Vos y Claude |
+| `/var/www/rob-run-caseros/rob-run-caseros` | Copia de trabajo: se edita, se prueba, se hace commit | Vos y Claude |
 | `/opt/barrio/repo` | Copia de producción, de la que corre el backend | Solo `setup-vps.sh` y `deploy-backend.sh` |
 
 ## 3. Preparar el VPS para trabajar (una sola vez)
@@ -98,9 +98,10 @@ git config --global user.name "Tu nombre"
 git config --global user.email "tu-email"
 gh auth login            # elegir GitHub.com, HTTPS, y autenticar en el navegador
 
-# Copia de trabajo
-git clone https://github.com/facundofr/rob-run-caseros.git ~/rob-run-caseros
-cd ~/rob-run-caseros/backend && npm install && npm test
+# Copia de trabajo, junto a los demás proyectos de /var/www (la carpeta tiene que ser de tu usuario)
+sudo mkdir -p /var/www/rob-run-caseros && sudo chown "$USER:" /var/www/rob-run-caseros
+git clone https://github.com/facundofr/rob-run-caseros.git /var/www/rob-run-caseros/rob-run-caseros
+cd /var/www/rob-run-caseros/rob-run-caseros/backend && npm install && npm test
 ```
 
 Si `setup-vps.sh` todavía no se ejecutó, `/opt/barrio/node` no existe: primero seguir [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 1 a 3.
@@ -110,7 +111,7 @@ Si `setup-vps.sh` todavía no se ejecutó, `/opt/barrio/node` no existe: primero
 En la PC:
 1. Instalar en VS Code la extensión **Remote - SSH** (de Microsoft).
 2. `F1` → **Remote-SSH: Connect to Host...** → `barrio-vps`.
-3. **File → Open Folder** → `/home/facu/rob-run-caseros`.
+3. **File → Open Folder** → `/var/www/rob-run-caseros/rob-run-caseros`.
 
 Todo lo que se abre en esa ventana (archivos, terminal) está en el VPS.
 
