@@ -20,6 +20,9 @@ _CACHE = {}
 TREE_KEYS = ('Hornbeam',)
 TREE_SKIP = ('Sapling', 'Seedling', 'Billboard', 'Impostor', 'Branch', 'Twig', 'Leaf', 'Leaves', 'Trunk', 'Bark',
              'Debris', 'Root', 'Stump', 'Log')
+# Pocas mallas distintas: cada una suma su BLAS de ray tracing (con todas se pasa del presupuesto de 400 MiB).
+TREE_CALLE = ('Forest_03', 'Forest_04', 'Forest_05', 'Forest_06')
+TREE_PLAZA = ('Field_01', 'Field_03', 'Field_04', 'Forest_01')
 CAR_KEYS = ('VehicleVarietyPack', 'Vehicle_Variety', 'VehicleVariety')
 CAR_SKIP = ('Wheel', 'Tire', 'Tyre', 'Door', 'Interior', 'Glass', 'Window', 'Steering', 'Seat', 'Light', 'Brake',
             'Physics', 'Phys', 'Box_', 'Collision', 'Hood', 'Trunk', 'Mirror', 'Wiper', 'Caliper', 'Disc')
@@ -49,8 +52,8 @@ def _height(obj):
 
 def trees():
     """{'calle': [...], 'plaza': [...]} con (StaticMesh, alto_cm, z_min, ancho_cm, ruta) del carpe (vacío si no
-    está). Se usan las versiones SimpleWind (más baratas que PivotPainter). Calle: copas angostas (Forest);
-    plaza: copas anchas (Field y los Forest grandes)."""
+    está). Se usan las versiones SimpleWind (más baratas que PivotPainter). Calle: copas angostas (TREE_CALLE);
+    plaza: copas anchas (TREE_PLAZA)."""
     if 'trees' in _CACHE:
         return _CACHE['trees']
     out = {'calle': [], 'plaza': []}
@@ -72,11 +75,9 @@ def trees():
         except Exception:  # noqa: BLE001
             w = h * 0.6
         t = (obj, h, z0, w, p)
-        if 'Field' in name or w > 1200.0:
-            out['plaza'].append(t)
-        else:
+        if any(name.endswith(k_) for k_ in TREE_CALLE):
             out['calle'].append(t)
-        if 'Forest' in name and w <= 1200.0 and h >= 1450.0:
+        if any(name.endswith(k_) for k_ in TREE_PLAZA):
             out['plaza'].append(t)
     for v in out.values():
         v.sort(key=lambda t: t[4])

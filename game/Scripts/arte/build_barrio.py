@@ -224,13 +224,18 @@ def spawn_trees(c, lst, folder, prefix):
             if t.get('big'):
                 target, wmax = rr.uniform(1300.0, 1600.0), 1500.0
             else:
-                target, wmax = rr.uniform(950.0, 1150.0), 720.0   # copa que no se meta en las fachadas
+                target, wmax = rr.uniform(1050.0, 1250.0), 860.0  # copa que no se meta en las fachadas
             s_ = min(target / max(h, 1.0), wmax / max(w, 1.0))
             s_ = max(s_, 0.55)
             z = t['pos'][2] if len(t['pos']) > 2 else 0.0
             loc = (t['pos'][0], t['pos'][1], z - z0 * s_)
-            put(c, [sm], '%s_%d' % (prefix, i), loc, rr.uniform(0.0, 360.0), folder, collision=False,
-                scale=(s_, s_, s_))
+            acts = put(c, [sm], '%s_%d' % (prefix, i), loc, rr.uniform(0.0, 360.0), folder, collision=False,
+                       scale=(s_, s_, s_))
+            for a in acts or []:
+                try:   # sin viento: el WPO invalida las sombras virtuales cada frame (+6,5 ms en la plaza)
+                    a.static_mesh_component.set_editor_property('evaluate_world_position_offset', False)
+                except Exception:  # noqa: BLE001
+                    pass
             _tronco_col(c, '%s_%d_Tronco' % (prefix, i), (t['pos'][0], t['pos'][1], z), 22.0 * s_ + 6.0, 320.0,
                         folder)
             c.count['arboles_fab'] = c.count.get('arboles_fab', 0) + 1

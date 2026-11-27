@@ -27,7 +27,11 @@ gratis desde su cuenta de Epic.
 ## Detalles técnicos
 
 - `barrio_fab.py` descubre los assets por nombre (las rutas exactas cambian entre versiones).
-- Árboles: versiones **SimpleWind** (más baratas que PivotPainter), Nanite. La malla de follaje va sin
-  colisión; cada árbol lleva un cilindro invisible como colisión del tronco (`*_Tronco`).
+- Árboles: versiones **SimpleWind** (más baratas que PivotPainter), Nanite, y solo 4 mallas para vereda y
+  4 para plaza (cada malla distinta suma memoria de ray tracing; con las 15 se pasaba del presupuesto).
+  Van **sin viento** (`evaluate_world_position_offset = False`): el viento invalida las sombras virtuales
+  cada frame y costaba unos 6,5 ms de GPU en la plaza (RTX 5050). La malla de follaje va sin colisión;
+  cada árbol lleva un cilindro invisible como colisión del tronco (`*_Tronco`).
+- `perf_arboles.py <modo>` prueba esos costos en el mapa abierto (nowpo, wpo, nosombra, nort...).
 - Los actores del mapa que usan estos paquetes quedan con referencias rotas en un clon sin los paquetes;
   volver a correr el build los reemplaza por los generados.
