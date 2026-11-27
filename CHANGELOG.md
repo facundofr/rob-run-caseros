@@ -9,8 +9,10 @@
 - `docs/ARQUITECTURA.md`: las piezas explicadas desde el desarrollo web, y la escala del servidor de juego por fases.
 - `docs/DESPLIEGUE_VPS.md`: instalación con `sudo` y log, avisos normales, comprobaciones y creación de la primera cuenta. `docs/BACKEND.md`: reglas del registro. `docs/ENTORNOS.md`: grupo `systemd-journal` para ver logs sin `sudo`.
 
+- `docs/PLAN.md`: la sección "Ahora" pasa a ser la lista completa de lo que falta hasta la prueba con amigos, para seguir desde la PC principal. Para abrir la alpha ahora también hacen falta un backup automático de la base y el cliente empaquetado en Shipping.
+
 ### Corregido
-- `docs/DESPLIEGUE_VPS.md`: el backup de la base y los logs no funcionaban sin una sesión de root.
+- `docs/DESPLIEGUE_VPS.md`: el backup de la base y los logs no funcionaban sin una sesión de root. El servidor de juego se sube con el usuario propio y `sudo rsync`, y no con `scp` como root.
 
 ## [Sin publicar] Backend listo para el VPS y alcance para una persona
 

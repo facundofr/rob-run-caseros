@@ -123,22 +123,24 @@ Empaquetar también el cliente (**Platforms → Windows → Build Target: Barrio
 
 ### 5.3 Subir y arrancar
 
-Desde la PC (PowerShell):
+Desde la PC (PowerShell), en la carpeta `game` del repo. Se sube con tu usuario del VPS (el mismo de VS Code Remote-SSH, o el alias de tu `~/.ssh/config`) a una carpeta temporal. Si quedó una de una subida anterior, borrarla antes en el VPS con `rm -rf ~/barrio-server-nuevo`:
 
 ```powershell
-scp -r .\Build\LinuxServer\* root@caseros.facundofr.com:/opt/barrio/server/
+scp -r .\Build\LinuxServer facufr@caseros.facundofr.com:barrio-server-nuevo
 ```
 
-En el VPS:
+En el VPS, con `sudo`. Reemplaza el servidor anterior entero:
 
 ```bash
-chown -R barrio:barrio /opt/barrio/server
-chmod +x /opt/barrio/server/BarrioServer.sh
-systemctl start barrio-server
-journalctl -u barrio-server -f   # tiene que decir que escucha en 7777, cargó L_Greybox y se registró en el backend
+sudo rsync -a --delete ~/barrio-server-nuevo/ /opt/barrio/server/
+sudo chown -R barrio:barrio /opt/barrio/server
+sudo chmod +x /opt/barrio/server/BarrioServer.sh
+rm -rf ~/barrio-server-nuevo
+sudo systemctl start barrio-server
+sudo journalctl -u barrio-server -f   # tiene que decir que escucha en 7777, cargó L_Greybox y se registró en el backend
 ```
 
-Mientras se desarrolla, el servidor de juego se prende solo para probar (`systemctl start barrio-server` y, al terminar, `systemctl stop barrio-server`). Cuando tenga que quedar siempre abierto (alpha): `systemctl enable --now barrio-server`.
+Mientras se desarrolla, el servidor de juego se prende solo para probar (`sudo systemctl start barrio-server` y, al terminar, `sudo systemctl stop barrio-server`). Para ver cuánta RAM y CPU usa: `systemctl status barrio-server` (línea `Memory`) y `top`. Cuando tenga que quedar siempre abierto (alpha): `sudo systemctl enable --now barrio-server`.
 
 El servicio lee `/etc/barrio/gameserver.env`. Con ese archivo, el servidor se registra en el backend y **exige login**. Sin él, cualquiera con la dirección puede entrar y nada se guarda.
 

@@ -6,13 +6,34 @@ Actualizado: 27 de noviembre de 2026. **Única fuente del estado del proyecto**:
 
 ## Ahora
 
-Lo próximo, en orden. **Actualizar esta sección al terminar cada paso**: es lo primero que lee quien retoma el trabajo.
+Todo lo que falta hasta la prueba con amigos, en orden. **Al terminar cada paso, tildarlo acá y actualizar la tabla de etapas**: esta sección es lo primero que lee quien retoma el trabajo.
 
-| Próximo paso | Quién y dónde | Cómo |
-| --- | --- | --- |
-| Crear la primera cuenta desde la PC (cierra la etapa 3) | El usuario, en la PC | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 3 |
-| Probar el loop con 3 jugadores en el editor y corregir lo que falle (etapa 4) | El usuario con Claude Code, en la PC | [PRUEBAS.md](PRUEBAS.md) |
-| Preparar la etapa 5: confirmar el disco libre que pide [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) para compilar el motor, compilarlo desde el código fuente y abrir 7777/UDP en el firewall de hPanel (en `ufw` ya está abierto) | El usuario, en la PC y en hPanel | [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), secciones 2 y 5.1 |
+Desde el 27/11/2026 el trabajo sigue en la **PC principal** (Windows). En el VPS el backend ya funciona, y el servicio del servidor de juego está instalado esperando que lo suban (`/opt/barrio/server`, vacía). Los comandos del VPS que llevan `sudo` los corre el usuario: la IA no puede usar `sudo`.
+
+**1. Cerrar la etapa 3 (PC, 5 minutos)**
+- [ ] `git pull` en la PC, para traer lo que se hizo desde el VPS: scripts, documentación y este plan.
+- [ ] Crear la primera cuenta y probar el login desde PowerShell ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), sección 3, "Crear la primera cuenta"). Después, marcar la etapa 3 como **Hecho** en la tabla de etapas.
+
+**2. Etapa 4: probar el juego en el editor (PC)**
+- [ ] Pasar las listas "Fase 1", "Fase 2" y "Loop completo" de [PRUEBAS.md](PRUEBAS.md) con 3 jugadores en *Play As Client*. No hace falta el backend: en el editor, el juego anda sin cuentas.
+- [ ] Anotar cada falla (el punto de la lista y lo que dice el Output Log) y corregirla antes de seguir. Es el primer uso real del código: van a aparecer errores.
+
+**3. Preparar el servidor de juego (PC, una sola vez)** ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), 5.1 y 5.2)
+- [ ] Confirmar el disco libre que pide [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md): 500 GB para compilar el motor.
+- [ ] Vincular la cuenta de Epic con GitHub y aceptar la invitación de la organización EpicGames.
+- [ ] Clonar Unreal Engine en la etiqueta `5.8.4-release` y compilarlo. Después, instalar el toolchain de Linux de esa versión.
+- [ ] Pasar `Barrio.uproject` a ese motor y empaquetar **el servidor (Linux) y el cliente (Windows)**, los dos desde el mismo commit.
+
+**4. Etapa 5: el servidor de juego en el VPS**
+- [ ] hPanel → VPS → Firewall: si hay reglas, permitir la entrada por 7777/UDP. En `ufw` ya está abierto.
+- [ ] Subir el servidor y arrancarlo ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), 5.3).
+- [ ] Probar "Cuentas y dinero" de [PRUEBAS.md](PRUEBAS.md) con el cliente empaquetado.
+- [ ] Jugar 1 hora con 4 a 8 amigos, cada uno desde su casa, pasándoles el cliente en un zip de `Build/Windows`. Medir la RAM y la CPU del servidor ([DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), 5.3).
+- [ ] Responder **¿divierte?** Si sí, se sigue con la etapa 7. Si no, se cambia el diseño antes de agregar nada.
+
+**Opcional, en el VPS:** `sudo usermod -aG systemd-journal facufr`, para que la IA lea los logs sin pedírselos al usuario ([ENTORNOS.md](ENTORNOS.md), 3.2).
+
+**Después de la prueba con amigos:** las etapas 7 y 9 de la tabla. Lo que tiene que estar antes de abrir la alpha a desconocidos figura en el criterio de cierre de la etapa 9.
 
 ## Equipo, alcance y estimación
 
@@ -53,7 +74,7 @@ Lo próximo, en orden. **Actualizar esta sección al terminar cada paso**: es lo
 | 5 | 1 hora de juego con jugadores desde casas distintas, sin caídas |
 | 6 | Un jugador vende botín, sale, vuelve a entrar y conserva el dinero ([PRUEBAS.md](PRUEBAS.md), "Cuentas y dinero") |
 | 6b | Pasa la lista "Loop completo" de [PRUEBAS.md](PRUEBAS.md) con las reglas v2 |
-| 9 | 16 jugadores reales, red y CPU del VPS medidos, encuesta de diversión, política de privacidad publicada (el juego guarda emails: Ley 25.326) |
+| 9 | 16 jugadores reales, red y CPU del VPS medidos, encuesta de diversión. Antes de abrirla: backup automático diario de la base (hoy es a mano: [DESPLIEGUE_VPS.md](DESPLIEGUE_VPS.md), "Comandos útiles"), cliente empaquetado en **Shipping** (en Development se puede abrir la consola) y política de privacidad publicada (el juego guarda emails: Ley 25.326) |
 
 ## Riesgos abiertos
 
